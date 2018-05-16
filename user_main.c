@@ -108,7 +108,16 @@ void ICACHE_FLASH_ATTR func()
 void timfunc()
 {
     uint8 localcount;
-    if(count > 3)
+    if(count == 25)
+    {
+        i2c_writeData(0x0);
+        i2c_checkForAck();
+        i2c_writeData(0x0);
+        i2c_checkForAck();
+        i2c_writeData(0x0);
+        i2c_checkForAck();
+    }
+    if(count > 25)
     {
         os_timer_disarm(&tim);
     }
