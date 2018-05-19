@@ -11,49 +11,49 @@ void erase_screen();
 char initSequence[20] = {CONTROL_BYTE_COMMAND,//control byte, following transmission will contain command data bytes
                          CMD_SET_DISPLAY_ON(OFF),//display off
 
-                         0xA8,//setting mux ratio
-                         0x3F,//64mux, reset 0b00111111
+                         CMD_SET_MUX_RATIO,//setting mux ratio
+                         DEFAULT_MUX_RATIO,//64mux, reset 0b00111111
 
-                         0xD3,//set vertical shift by com
-                         0x00,//00h, reset
+                         CMD_SET_DISPLAY_OFFSET,//set vertical shift by com
+                         DEFAULT_DISPLAY_OFFSET,//00h, reset
 
-                         0x40,//set display start line as 00, reset
-                         0xA1,//segment remap, column address 127 mapped to SEG0
-                         0xC8,//remapped mode, scan COM ports in reverse
+                         CMD_SET_DISPLAY_START_LINE(0x00),//set display start line as 00, reset
+                         CMD_SET_SEGMENT_REMAP(ON),//segment remap, column address 127 mapped to SEG0
+                         CMD_SET_COM_OUTPUT_SCAN(ON),//remapped mode, scan COM ports in reverse
 
-                         0xDA,//set COM pin hardware config
-                         0x12,//alternative COM pin config
+                         CMD_SET_COM_PIN_CONFIG,//set COM pin hardware config
+                         DEFAULT_COM_PIN_CONFIG,//alternative COM pin config
 
-                         0x81,//set contrast
-                         0x7F,//reset
+                         CMD_SET_CONTRAST,//set contrast
+                         DEFAULT_CONTRAST,//reset
 
-                         0xA4,//resume to ram content display, reset
-                         0xA6,//normal display, reset
+                         CMD_ENTIRE_DISPLAY_ON(ON),//resume to ram content display, reset
+                         CMD_SET_DISPLAY_INVERTED(OFF),//normal display, reset
 
-                         0xD5,//set display clock
+                         CMD_SET_DISPLAY_CLOCK,//set display clock
                          0xf0,//not reset
 
-                         0x8D,//charge pump
-                         0x14,//enable charge pump during display on
+                         CMD_TOGGLE_CHARGE_PUMP,//charge pump
+                         SET_CHARGE_PUMP_STATUS(ON),//enable charge pump during display on
 
-                         0xAF,//turn on display
+                         CMD_SET_DISPLAY_ON(ON),//turn on display
                         };
 uint8 byteToWrite;
-unsigned char setFullRange[11] = {0x00,//control byte, following transmission will contain command data bytes
+unsigned char setFullRange[11] = {CONTROL_BYTE_COMMAND,//control byte, following transmission will contain command data bytes
 
-                                 0x00,
-                                 0x10,
+                                 CMD_SET_COLUMN_START_NIBBLE_LOW(DEFAULT_COLUMN_START_NIBBLE_LOW),
+                                 CMD_SET_COLUMN_START_NIBBLE_HIGH(DEFAULT_COLUMN_START_NIBBLE_HIGH),
 
-                                 0x21,//set column start and end address
-                                 0x00,//start address, reset
-                                 0x7F,//end address, return
+                                 CMD_SET_COLUMN_ADDRESS_RANGE,//set column start and end address
+                                 DEFAULT_COLUMN_START_ADDRESS,//start address, reset
+                                 DEFAULT_COLUMN_END_ADDRESS,//end address, return
 
-                                 0x22,//set page start and end address
-                                 0x00,//start address, reset
-                                 0x07,//end address reset
+                                 CMD_SET_PAGE_ADDRESS_RANGE,//set page start and end address
+                                 DEFAULT_PAGE_START_ADDRESS,//start address, reset
+                                 DEFAULT_PAGE_END_ADDRESS,//end address reset
 
-                                 0x20,
-                                 0x00
+                                 CMD_SET_MEMORY_ADDRESSING_MODE,
+                                 MEMORY_ADDRESSING_MODE_HORIZONTAL
                                 };
 LOCAL os_timer_t tim;
 void user_init(void)
