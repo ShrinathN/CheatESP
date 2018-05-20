@@ -5,9 +5,12 @@
  * All the functions in this header will be generating the I2C starting condition, checking for ACK, and generating stop conditions
  * by themselves. This means the user does not have to generate a start condition separately, only the I2C init has to be done.
 */
-#include "user_config.h"
-#include "i2c.h"
-#include "oled.h"
+
+//Comment out or remove these lines when compiling
+//#include "user_config.h"
+//#include "i2c.h"
+//#include "fonts.h"
+//#include "oled.h"
 #define OLED_ADDRESS 0x78 //address of the I2C OLED device, change if needed
 #define OLED_SUCCESS 0 //macro to indicate success
 #define OLED_FAILURE -1 //macro to indicate failure
@@ -39,7 +42,7 @@ Oled_init()
     {
         while(localTempCounter < INIT_STRING_LENGTH) //while all bytes are note sent over, loop
         {
-            i2c_writeData(OledInitString[localTempCounter]); //send the byte at which the counter is pointing to
+            i2c_writeData(OledinitString[localTempCounter]); //send the byte at which the counter is pointing to
             if(!i2c_checkForAck()) //if no ACK
                 return OLED_FAILURE; //return failure
             localTempCounter++; //incrememt the counter
@@ -61,9 +64,9 @@ Oled_drawCharacter(uint8 * character)
 {
     uint8 localTempColumn = 0; //using a temporary variable
     uint8 localTempCounter = 0;
-    while(column < 4) //since all characters are 4 bytes
+    while(localTempColumn < 4) //since all characters are 4 bytes
     {
-        i2c_writeData(*(charater + localTempColumn)); //increments the base pointer of the character by localTempColumn counter
+        i2c_writeData(*(character + localTempColumn)); //increments the base pointer of the character by localTempColumn counter
         if(!i2c_checkForAck()) //checks for ACK, if not returns error
             return OLED_FAILURE; //returns failure
         characterCounter++; //increments the counter indicating the number of characters on the screen
@@ -83,10 +86,25 @@ Oled_drawCharacter(uint8 * character)
     return OLED_SUCCESS; //returns success
 }
 
-//function to write a string on the screen
+
+/* NOTE
+ * This function is experimental, invoking this function MAY cause the watchdog to reset
+ * If so, this will be replaced by a os_task or os_timer implementation
+ *
+ * This function will handle the writing of strings on the screen
+ * The Oled_drawCharacter function will handle newlines, so they do not have to be worried about
+ * in this function
+ * The "array" must contain the character to print according to the font map in fonts.h file
+*/
 uint8 ICACHE_FLASH_ATTR
-Oled_writeString(uint8)
+Oled_writeString(uint8 * array, uint8 length)
 {
+    do
+    {
+        Oled_drawCharacter(fontCharacterArray[*(array)]);
+        array++;
+    }
+    while(--length);
 }
 
 uint8 ICACHE_FLASH_ATTR

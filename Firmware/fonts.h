@@ -1,4 +1,4 @@
-static uint8 characters[42][4] = {0x7e,//A
+static uint8 fontCharacterArray[42][4] = {0x7e,//A
                                   0x12,
                                   0x12,
                                   0x7E,

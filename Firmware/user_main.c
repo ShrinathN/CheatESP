@@ -1,21 +1,14 @@
 #include "user_config.h"
 #include "i2c.h"
 #include "oled.h"
-#include "oled_functions.h"
 #include "fonts.h"
+#include "oled_functions.h"
 #define AP_SSID ""
 #define AP_PASSWORD ""
 #define SET_BAUD(UART_NUMBER, BAUD_RATE) uart_div_modify(UART_NUMBER, UART_CLK_FREQ / BAUD_RATE)
-void ICACHE_FLASH_ATTR func();
-void timfunc();
-void erase_screen();
-
-uint8 byteToWrite;
-LOCAL os_timer_t tim;
 void user_init(void)
 {
     os_delay_us(500000); //starts working the magic 0.5s after booting
-    func(); //screen testing function, dumps all the fonts
 }
 /*
 uint16 count;

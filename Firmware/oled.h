@@ -133,7 +133,7 @@
 #define SET_CHARGE_PUMP_STATUS(x) (0x10 | (x << 2))
 
 
-#define INIT_STRING_LENGTH 20
+#define INIT_STRING_LENGTH 30
 char OledinitString[INIT_STRING_LENGTH] = {
     CONTROL_BYTE_COMMAND,//control byte, following transmission will contain command data bytes
     CMD_SET_DISPLAY_ON(OFF),//display off
