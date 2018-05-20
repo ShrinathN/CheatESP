@@ -131,3 +131,56 @@
 //if x = 1, the charge pump is enabled when the display is on
 #define CMD_TOGGLE_CHARGE_PUMP (0x8D)
 #define SET_CHARGE_PUMP_STATUS(x) (0x10 | (x << 2))
+
+
+#define INIT_STRING_LENGTH 20
+char OledinitString[INIT_STRING_LENGTH] = {
+    CONTROL_BYTE_COMMAND,//control byte, following transmission will contain command data bytes
+    CMD_SET_DISPLAY_ON(OFF),//display off
+
+    CMD_SET_MUX_RATIO,//setting mux ratio
+    DEFAULT_MUX_RATIO,//64mux, reset 0b00111111
+
+    CMD_SET_DISPLAY_OFFSET,//set vertical shift by com
+    DEFAULT_DISPLAY_OFFSET,//00h, reset
+
+    CMD_SET_DISPLAY_START_LINE(0x00),//set display start line as 00, reset
+    CMD_SET_SEGMENT_REMAP(ON),//segment remap, column address 127 mapped to SEG0
+    CMD_SET_COM_OUTPUT_SCAN(ON),//remapped mode, scan COM ports in reverse
+
+    CMD_SET_COM_PIN_CONFIG,//set COM pin hardware config
+    DEFAULT_COM_PIN_CONFIG,//alternative COM pin config
+
+    CMD_SET_CONTRAST,//set contrast
+    DEFAULT_CONTRAST,//reset
+
+    CMD_ENTIRE_DISPLAY_ON(ON),//resume to ram content display, reset
+    CMD_SET_DISPLAY_INVERTED(OFF),//normal display, reset
+
+    CMD_SET_DISPLAY_CLOCK,//set display clock
+    0xf0,//not reset
+
+    CMD_TOGGLE_CHARGE_PUMP,//charge pump
+    SET_CHARGE_PUMP_STATUS(ON),//enable charge pump during display on
+
+    CMD_SET_DISPLAY_ON(ON),//turn on display
+
+//=====starting of full range string=====
+//#define SET_FULL_RANGE_STRING_LENGTH 11
+//unsigned char setFullRange[SET_FULL_RANGE_STRING_LENGTH] = {
+//    CONTROL_BYTE_COMMAND,//control byte, following transmission will contain command data bytes
+
+    CMD_SET_COLUMN_START_NIBBLE_LOW(DEFAULT_COLUMN_START_NIBBLE_LOW),
+    CMD_SET_COLUMN_START_NIBBLE_HIGH(DEFAULT_COLUMN_START_NIBBLE_HIGH),
+
+    CMD_SET_COLUMN_ADDRESS_RANGE,//set column start and end address
+    DEFAULT_COLUMN_START_ADDRESS,//start address, reset
+    DEFAULT_COLUMN_END_ADDRESS,//end address, return
+
+    CMD_SET_PAGE_ADDRESS_RANGE,//set page start and end address
+    DEFAULT_PAGE_START_ADDRESS,//start address, reset
+    DEFAULT_PAGE_END_ADDRESS,//end address reset
+
+    CMD_SET_MEMORY_ADDRESSING_MODE,
+    MEMORY_ADDRESSING_MODE_HORIZONTAL
+};

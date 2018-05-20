@@ -1,6 +1,7 @@
 #include "user_config.h"
 #include "i2c.h"
 #include "oled.h"
+#include "oled_functions.h"
 #include "fonts.h"
 #define AP_SSID ""
 #define AP_PASSWORD ""
@@ -8,61 +9,17 @@
 void ICACHE_FLASH_ATTR func();
 void timfunc();
 void erase_screen();
-char initSequence[20] = {CONTROL_BYTE_COMMAND,//control byte, following transmission will contain command data bytes
-                         CMD_SET_DISPLAY_ON(OFF),//display off
 
-                         CMD_SET_MUX_RATIO,//setting mux ratio
-                         DEFAULT_MUX_RATIO,//64mux, reset 0b00111111
-
-                         CMD_SET_DISPLAY_OFFSET,//set vertical shift by com
-                         DEFAULT_DISPLAY_OFFSET,//00h, reset
-
-                         CMD_SET_DISPLAY_START_LINE(0x00),//set display start line as 00, reset
-                         CMD_SET_SEGMENT_REMAP(ON),//segment remap, column address 127 mapped to SEG0
-                         CMD_SET_COM_OUTPUT_SCAN(ON),//remapped mode, scan COM ports in reverse
-
-                         CMD_SET_COM_PIN_CONFIG,//set COM pin hardware config
-                         DEFAULT_COM_PIN_CONFIG,//alternative COM pin config
-
-                         CMD_SET_CONTRAST,//set contrast
-                         DEFAULT_CONTRAST,//reset
-
-                         CMD_ENTIRE_DISPLAY_ON(ON),//resume to ram content display, reset
-                         CMD_SET_DISPLAY_INVERTED(OFF),//normal display, reset
-
-                         CMD_SET_DISPLAY_CLOCK,//set display clock
-                         0xf0,//not reset
-
-                         CMD_TOGGLE_CHARGE_PUMP,//charge pump
-                         SET_CHARGE_PUMP_STATUS(ON),//enable charge pump during display on
-
-                         CMD_SET_DISPLAY_ON(ON),//turn on display
-                        };
 uint8 byteToWrite;
-unsigned char setFullRange[11] = {CONTROL_BYTE_COMMAND,//control byte, following transmission will contain command data bytes
-
-                                 CMD_SET_COLUMN_START_NIBBLE_LOW(DEFAULT_COLUMN_START_NIBBLE_LOW),
-                                 CMD_SET_COLUMN_START_NIBBLE_HIGH(DEFAULT_COLUMN_START_NIBBLE_HIGH),
-
-                                 CMD_SET_COLUMN_ADDRESS_RANGE,//set column start and end address
-                                 DEFAULT_COLUMN_START_ADDRESS,//start address, reset
-                                 DEFAULT_COLUMN_END_ADDRESS,//end address, return
-
-                                 CMD_SET_PAGE_ADDRESS_RANGE,//set page start and end address
-                                 DEFAULT_PAGE_START_ADDRESS,//start address, reset
-                                 DEFAULT_PAGE_END_ADDRESS,//end address reset
-
-                                 CMD_SET_MEMORY_ADDRESSING_MODE,
-                                 MEMORY_ADDRESSING_MODE_HORIZONTAL
-                                };
 LOCAL os_timer_t tim;
 void user_init(void)
 {
-    os_delay_us(500000);
-    func();
+    os_delay_us(500000); //starts working the magic 0.5s after booting
+    func(); //screen testing function, dumps all the fonts
 }
+/*
 uint16 count;
-void ICACHE_FLASH_ATTR func()
+void ICACHE_FLASH_ATTR OledTestFunction()
 {
     i2c_init();
     i2c_startCondition();
@@ -150,3 +107,4 @@ void erase_screen()
     }
 
 }
+*/
