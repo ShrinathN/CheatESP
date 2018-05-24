@@ -1,4 +1,5 @@
 #include "user_config.h"
+#include "protocol.h"
 #include "i2c.h"
 #include "oled.h"
 #include "fonts.h"
@@ -10,6 +11,10 @@ void user_init(void)
 {
     os_delay_us(500000); //starts working the magic 0.5s after booting
 }
+fasf()
+{
+
+}
 /*
 uint16 count;
 void ICACHE_FLASH_ATTR OledTestFunction()
@@ -20,11 +25,11 @@ void ICACHE_FLASH_ATTR OledTestFunction()
     i2c_checkForAck();
     for(count = 0; count < 20; count++)
     {
-        i2c_writeData(initSequence[count]);
-        if(i2c_checkForAck())
-            os_printf("ACK\n");
-        else
-            os_printf("NACK\n");
+	i2c_writeData(initSequence[count]);
+	if(i2c_checkForAck())
+	    os_printf("ACK\n");
+	else
+	    os_printf("NACK\n");
     }
     i2c_stopCondition();
 
@@ -33,11 +38,11 @@ void ICACHE_FLASH_ATTR OledTestFunction()
     i2c_checkForAck();
     for(count = 0; count < 11; count++)
     {
-        i2c_writeData(setFullRange[count]);
-        if(i2c_checkForAck())
-            os_printf("ACK\n");
-        else
-            os_printf("NACK\n");
+	i2c_writeData(setFullRange[count]);
+	if(i2c_checkForAck())
+	    os_printf("ACK\n");
+	else
+	    os_printf("NACK\n");
     }
     i2c_stopCondition();
 
@@ -60,27 +65,27 @@ void timfunc()
     uint8 localcount;
     if(count % 25 == 0)
     {
-        i2c_writeData(0x0);
-        i2c_checkForAck();
-        i2c_writeData(0x0);
-        i2c_checkForAck();
-        i2c_writeData(0x0);
-        i2c_checkForAck();
+	i2c_writeData(0x0);
+	i2c_checkForAck();
+	i2c_writeData(0x0);
+	i2c_checkForAck();
+	i2c_writeData(0x0);
+	i2c_checkForAck();
     }
     if(count > 41)
     {
-        os_timer_disarm(&tim);
+	os_timer_disarm(&tim);
     }
     else
     {
-        for(localcount = 0; localcount < 4; localcount++)
-        {
-            i2c_writeData(characters[count][localcount]);
-            i2c_checkForAck();
-        }
-        i2c_writeData(0x0);
-        i2c_checkForAck();
-        count++;
+	for(localcount = 0; localcount < 4; localcount++)
+	{
+	    i2c_writeData(characters[count][localcount]);
+	    i2c_checkForAck();
+	}
+	i2c_writeData(0x0);
+	i2c_checkForAck();
+	count++;
     }
 }
 
@@ -89,14 +94,14 @@ void erase_screen()
 {
     if(erasecounter++ > 128*8)
     {
-        os_timer_disarm(&tim);
-        os_timer_setfn(&tim, timfunc, NULL);
-        os_timer_arm(&tim, 1,1);
+	os_timer_disarm(&tim);
+	os_timer_setfn(&tim, timfunc, NULL);
+	os_timer_arm(&tim, 1,1);
     }
     else
     {
-        i2c_writeData(0x0);
-        i2c_checkForAck();
+	i2c_writeData(0x0);
+	i2c_checkForAck();
     }
 
 }
