@@ -8,7 +8,7 @@
 #define I2C_SDA_MUX PERIPHS_IO_MUX_GPIO2_U
 #define I2C_SDA_FUNC FUNC_GPIO2
 
-#define I2C_SLEEP_US 10
+#define I2C_SLEEP_US 3
 
 LOCAL void ICACHE_FLASH_ATTR
 i2c_scl_set(uint8 status)

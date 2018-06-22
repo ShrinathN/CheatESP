@@ -1,15 +1,13 @@
 /*NOTE
  * This header file depends on the "i2c.h" file to function
  * The i2c.h file contains the implementation of soft i2c
- *
- * All the functions in this header will be generating the I2C starting condition, checking for ACK, and generating stop conditions
- * by themselves. This means the user does not have to generate a start condition separately, only the I2C init has to be done.
+ * Also this file will use a lot of stuff from oled.h file
 */
 
 //Comment out or remove these lines when compiling
 //#include "user_config.h"
 //#include "i2c.h"
-#include "fonts.h"
+//#include "fonts.h"
 //#include "oled.h"
 #define OLED_ADDRESS 0x78 //address of the I2C OLED device, change if needed
 #define OLED_SUCCESS 0 //macro to indicate success
@@ -24,15 +22,17 @@
  * Be sure to change the threshold if a different screen is being used
 */
 
-uint8 characterCounter = 0;
-#define NEWLINE_CHARACTER_THRESHOLD 24 //use this macros to define the threshold for new line, -1 it because the counter begins at 0
+uint8 characterCounter = 0; //counter to keep a check of the number of characters on the screen right now
+#define NEWLINE_CHARACTER_THRESHOLD 25 //use this macros to define the threshold for new line
 
 /* This function will do the following-
  * 1. Generate an I2C start condition
  * 2. Send the I2C slave address
- * 3. Check for ACK, if ACK continue, if NACK, return OLED_FAILURE
- * 4. Send the init string, if NACK, return OLED_FAILURE
- * 5.
+ * 3. Send the init string
+ * 4. Send the normal full range useage string
+ * 5. Generate I2C stop condition
+ *
+ * Will return an OLED_FAILURE if NACK
 */
 uint8 ICACHE_FLASH_ATTR
 Oled_init()
@@ -42,24 +42,43 @@ Oled_init()
     i2c_writeData(OLED_ADDRESS); //sending over the I2C slave address
     if(i2c_checkForAck()) //checks for ACK
     {
-	do
-	{
-	    i2c_writeData(OledinitString[localTempCounter]); //send the byte at which the counter is pointing to
-	    if(!i2c_checkForAck()) //if no ACK
-		return OLED_FAILURE; //return failure
-	}
-	while(localTempCounter++ < INIT_STRING_LENGTH); //while all bytes are note sent over, loop
-	return OLED_SUCCESS; //return success
+        do
+        {
+            i2c_writeData(OledinitString[localTempCounter]); //send the byte at which the counter is pointing to
+            if(!i2c_checkForAck()) //if no ACK
+                return OLED_FAILURE; //return failure
+        }
+        while(localTempCounter++ < INIT_STRING_LENGTH); //while all bytes are note sent over, loop
+        i2c_stopCondition();
+
+        localTempCounter = 0; //reseting
+        i2c_startCondition(); //start conditon for comm initialization
+        i2c_writeData(OLED_ADDRESS); //sending over the I2C slave address
+        if(i2c_checkForAck()) //checks for ACK
+        {
+            do
+            {
+                i2c_writeData(OledsetFullRangeString[localTempCounter]); //send the byte at which the counter is pointing to
+                if(!i2c_checkForAck()) //if no ACK
+                    return OLED_FAILURE; //return failure
+            }
+            while(localTempCounter++ < SET_FULL_RANGE_STRING_LENGTH); //while all bytes are note sent over, loop
+            i2c_stopCondition(); //stop condition, init is done now
+            return OLED_SUCCESS;
+        }
+        else
+            return OLED_FAILURE; //return failure
     }
     else
-	return OLED_FAILURE; //return failure
+        return OLED_FAILURE; //return failure
 }
 
 /* This function will draw a character on the screen
  * and auto newline if the line threshold is reached
  * THIS FUNCTION DOES NOT GENERATE A START CONDITION, SEND I2C SLAVE ADDRESS OR GENERATE STOP CONDITION
- * for speed considerations, this function is meant to be used in the Oled_writeString function,
+ * this function is meant to be used in the Oled_writeString function,
  * which will generate all of those for it
+ * Will also increment the characterCounter at every character draw
 */
 uint8 ICACHE_FLASH_ATTR
 Oled_drawCharacter(uint8 * character)
@@ -67,13 +86,13 @@ Oled_drawCharacter(uint8 * character)
     uint8 localTempColumn; //using a temporary variable
     for(localTempColumn = 0;localTempColumn < 4; localTempColumn++) //since all characters are 4 bytes
     {
-	i2c_writeData(*(character + localTempColumn)); //increments the base pointer of the character by localTempColumn counter, and writes the data using I2C
-	if(!i2c_checkForAck()) //checks for ACK, if not returns error
-	    return OLED_FAILURE; //returns failure
+        i2c_writeData(*(character + localTempColumn)); //increments the base pointer of the character by localTempColumn counter, and writes the data using I2C
+        if(!i2c_checkForAck()) //checks for ACK, if not returns error
+            return OLED_FAILURE; //returns failure
     }
     i2c_writeData(0x00);//empty column between two characters
     if(!i2c_checkForAck()) //checks for ACK, if not returns error
-	return OLED_FAILURE; //returns failure
+        return OLED_FAILURE; //returns failure
     characterCounter++; //increments the counter indicating the number of characters on the screen
     return OLED_SUCCESS; //returns success
 }
@@ -85,29 +104,29 @@ Oled_drawCharacter(uint8 * character)
 void ICACHE_FLASH_ATTR
 Oled_EndOfLine()
 {
-    if(!(characterCounter % NEWLINE_CHARACTER_THRESHOLD))
+    if(!(characterCounter % NEWLINE_CHARACTER_THRESHOLD)) //redundant check if the line is full
     {
-	i2c_writeData(0x00);//3 columns of empty columns
-	i2c_checkForAck();
-	i2c_writeData(0x00);
-	i2c_checkForAck();
-	i2c_writeData(0x00);
-	i2c_checkForAck();
+        i2c_writeData(0x00);//3 columns of empty columns
+        i2c_checkForAck();
+        i2c_writeData(0x00);
+        i2c_checkForAck();
+        i2c_writeData(0x00);
+        i2c_checkForAck();
     }
 }
 
 /*this function takes the cursor to the next line
  * first it prints empty characters while the line threshold is reached
- * after the threshold is reached, it fills the remaining 3 columns
+ * after the threshold is reached, it calls Oled_EndOfLine function to fill the remaining 3 columns
 */
 void ICACHE_FLASH_ATTR
 Oled_newline()
 {
-    while(!(characterCounter % NEWLINE_CHARACTER_THRESHOLD))//loops while the line is not full
+    do
     {
-	Oled_drawCharacter(fontCharacterArray[42]);//prints empty charcter while the line is not full
-	characterCounter++;//increments character counter
+        Oled_drawCharacter(fontCharacterArray[42]);//prints empty charcter while the line is not full, don't need to increment characterCounter
     }
+    while((characterCounter % NEWLINE_CHARACTER_THRESHOLD) > 0);//loops while the line is not full
     Oled_EndOfLine();//to fill the 3 columns at the end of every line
 }
 
@@ -121,20 +140,33 @@ Oled_newline()
 uint8 ICACHE_FLASH_ATTR
 Oled_writeString(uint8 * array, uint8 length)
 {
+    i2c_startCondition();
+    i2c_writeData(OLED_ADDRESS);
+    i2c_checkForAck();
+    i2c_writeData(CONTROL_BYTE_DATA);
+    i2c_checkForAck();
     do
     {
-	if(*array != 43) //43 is newline character
-	    Oled_drawCharacter(fontCharacterArray[*(array)]);
-	else if(*array == 43)//43 is the signal for a newline
-	    Oled_newline();
-	array++;
+        if(*array != 43) //43 is newline character
+            Oled_drawCharacter(fontCharacterArray[*(array)]);
+        else /*if(*array == 43)*///43 is the signal for a newline
+            Oled_newline(); //newline if 43 is encountered
+        array++;
     }
     while(--length);
 }
 
+//EXPERIMENTAL FUNCTION to erase the screen
+//resets the character counter back to 0
 uint8 ICACHE_FLASH_ATTR
-Oled_drawImage()
+Oled_eraseScreen()
 {
-
+    uint16 erasecounter; //counter to erase the screen
+    for(erasecounter = 0; erasecounter < 128*8; erasecounter++) //loop while the whole screen hasn't been processed
+    {
+        i2c_writeData(0x0);//write a 0x0 to clear the column
+        if(!i2c_checkForAck())//check for ACK
+            return OLED_FAILURE;
+    }
+    return OLED_SUCCESS;
 }
-

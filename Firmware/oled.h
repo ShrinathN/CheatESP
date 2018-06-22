@@ -133,7 +133,7 @@
 #define SET_CHARGE_PUMP_STATUS(x) (0x10 | (x << 2))
 
 
-#define INIT_STRING_LENGTH 30
+#define INIT_STRING_LENGTH 20
 char OledinitString[INIT_STRING_LENGTH] = {
     CONTROL_BYTE_COMMAND,//control byte, following transmission will contain command data bytes
     CMD_SET_DISPLAY_ON(OFF),//display off
@@ -154,7 +154,7 @@ char OledinitString[INIT_STRING_LENGTH] = {
     CMD_SET_CONTRAST,//set contrast
     DEFAULT_CONTRAST,//reset
 
-    CMD_ENTIRE_DISPLAY_ON(ON),//resume to ram content display, reset
+    CMD_ENTIRE_DISPLAY_ON(OFF),//resume to ram content display, reset
     CMD_SET_DISPLAY_INVERTED(OFF),//normal display, reset
 
     CMD_SET_DISPLAY_CLOCK,//set display clock
@@ -163,12 +163,12 @@ char OledinitString[INIT_STRING_LENGTH] = {
     CMD_TOGGLE_CHARGE_PUMP,//charge pump
     SET_CHARGE_PUMP_STATUS(ON),//enable charge pump during display on
 
-    CMD_SET_DISPLAY_ON(ON),//turn on display
-
+    CMD_SET_DISPLAY_ON(ON)//turn on display
+};
 //=====starting of full range string=====
-//#define SET_FULL_RANGE_STRING_LENGTH 11
-//unsigned char setFullRange[SET_FULL_RANGE_STRING_LENGTH] = {
-//    CONTROL_BYTE_COMMAND,//control byte, following transmission will contain command data bytes
+#define SET_FULL_RANGE_STRING_LENGTH 11
+unsigned char OledsetFullRangeString[SET_FULL_RANGE_STRING_LENGTH] = {
+    CONTROL_BYTE_COMMAND,//control byte, following transmission will contain command data bytes
 
     CMD_SET_COLUMN_START_NIBBLE_LOW(DEFAULT_COLUMN_START_NIBBLE_LOW),
     CMD_SET_COLUMN_START_NIBBLE_HIGH(DEFAULT_COLUMN_START_NIBBLE_HIGH),
