@@ -152,21 +152,30 @@ Oled_writeString(uint8 * array, uint8 length)
         else /*if(*array == 43)*///43 is the signal for a newline
             Oled_newline(); //newline if 43 is encountered
         array++;
+        if(characterCounter % NEWLINE_CHARACTER_THRESHOLD == 0) //if the current line is full, newline
+            Oled_EndOfLine(); //to fill the 3 columns left
     }
     while(--length);
 }
 
-//EXPERIMENTAL FUNCTION to erase the screen
-//resets the character counter back to 0
+/*function to erase the screen
+ * resets the character counter back to 0, clears screen, generates start condition and stop condition
+*/
 uint8 ICACHE_FLASH_ATTR
 Oled_eraseScreen()
 {
     uint16 erasecounter; //counter to erase the screen
+    i2c_startCondition();
+    i2c_writeData(OLED_ADDRESS);
+    i2c_checkForAck();
+    i2c_writeData(CONTROL_BYTE_DATA);
+    i2c_checkForAck();
     for(erasecounter = 0; erasecounter < 128*8; erasecounter++) //loop while the whole screen hasn't been processed
     {
         i2c_writeData(0x0);//write a 0x0 to clear the column
         if(!i2c_checkForAck())//check for ACK
             return OLED_FAILURE;
     }
+    i2c_stopCondition();
     return OLED_SUCCESS;
 }
