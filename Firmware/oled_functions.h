@@ -13,7 +13,6 @@
 #define OLED_SUCCESS 0 //macro to indicate success
 #define OLED_FAILURE -1 //macro to indicate failure
 
-
 /* This variable holds the number of characters that have been drawn on the screen, basically it acts as a counter
  * in a normal 128x64 OLED, considering 8x4 fonts, and one column as space between every character,
  * a total of 25 characters can be displayed on the screen (since 128 / 5 =  25.6 ~ 25)
@@ -24,6 +23,7 @@
 
 uint8 characterCounter = 0; //counter to keep a check of the number of characters on the screen right now
 #define NEWLINE_CHARACTER_THRESHOLD 25 //use this macros to define the threshold for new line
+#define SCREEN_THRESHOLD 200
 
 /* This function will do the following-
  * 1. Generate an I2C start condition
@@ -73,6 +73,24 @@ Oled_init()
         return OLED_FAILURE; //return failure
 }
 
+/*this function will check if the current line has been filled
+ * basically divides the characterCounter with the NEWLINE_CHARACTER_THRESHOLD,
+ * if its 0 (meaning the line is full), it sends 3 empty columns to fill the line
+*/
+void ICACHE_FLASH_ATTR
+Oled_EndOfLine()
+{
+    if(!(characterCounter % NEWLINE_CHARACTER_THRESHOLD)) //redundant check if the line is full
+    {
+        i2c_writeData(0x00);//3 columns of empty columns
+        i2c_checkForAck();
+        i2c_writeData(0x00);
+        i2c_checkForAck();
+        i2c_writeData(0x00);
+        i2c_checkForAck();
+    }
+}
+
 /* This function will draw a character on the screen
  * and auto newline if the line threshold is reached
  * THIS FUNCTION DOES NOT GENERATE A START CONDITION, SEND I2C SLAVE ADDRESS OR GENERATE STOP CONDITION
@@ -94,25 +112,9 @@ Oled_drawCharacter(uint8 * character)
     if(!i2c_checkForAck()) //checks for ACK, if not returns error
         return OLED_FAILURE; //returns failure
     characterCounter++; //increments the counter indicating the number of characters on the screen
+    if(characterCounter % NEWLINE_CHARACTER_THRESHOLD == 0) //if the current line is full, newline
+        Oled_EndOfLine(); //to fill the 3 columns left
     return OLED_SUCCESS; //returns success
-}
-
-/*this function will check if the current line has been filled
- * basically divides the characterCounter with the NEWLINE_CHARACTER_THRESHOLD,
- * if its 0 (meaning the line is full), it sends 3 empty columns to fill the line
-*/
-void ICACHE_FLASH_ATTR
-Oled_EndOfLine()
-{
-    if(!(characterCounter % NEWLINE_CHARACTER_THRESHOLD)) //redundant check if the line is full
-    {
-        i2c_writeData(0x00);//3 columns of empty columns
-        i2c_checkForAck();
-        i2c_writeData(0x00);
-        i2c_checkForAck();
-        i2c_writeData(0x00);
-        i2c_checkForAck();
-    }
 }
 
 /*this function takes the cursor to the next line
@@ -127,7 +129,6 @@ Oled_newline()
         Oled_drawCharacter(fontCharacterArray[42]);//prints empty charcter while the line is not full, don't need to increment characterCounter
     }
     while((characterCounter % NEWLINE_CHARACTER_THRESHOLD) > 0);//loops while the line is not full
-    Oled_EndOfLine();//to fill the 3 columns at the end of every line
 }
 
 /* NOTE
@@ -152,8 +153,10 @@ Oled_writeString(uint8 * array, uint8 length)
         else /*if(*array == 43)*///43 is the signal for a newline
             Oled_newline(); //newline if 43 is encountered
         array++;
+        /*
         if(characterCounter % NEWLINE_CHARACTER_THRESHOLD == 0) //if the current line is full, newline
             Oled_EndOfLine(); //to fill the 3 columns left
+            */
     }
     while(--length);
 }
@@ -178,4 +181,14 @@ Oled_eraseScreen()
     }
     i2c_stopCondition();
     return OLED_SUCCESS;
+}
+
+void ICACHE_FLASH_ATTR
+Oled_returnCursor()
+{
+    while(characterCounter != 200)
+    {
+        Oled_drawCharacter(fontCharacterArray[42]);
+    }
+    characterCounter = 0;
 }
