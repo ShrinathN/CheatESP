@@ -177,14 +177,14 @@ Oled_writeString(uint8 * array, uint8 length)
     do
     {
         if(*array != 43) //43 is newline character
+        {
             Oled_drawCharacter(fontCharacterArray[*(array)]);
-        else /*if(*array == 43)*///43 is the signal for a newline
+        }
+        else if(*array == 43) //43 is the signal for a newline
+        {
             Oled_newline(); //newline if 43 is encountered
+        }
         array++;
-        /*
-        if(characterCounter % NEWLINE_CHARACTER_THRESHOLD == 0) //if the current line is full, newline
-            Oled_EndOfLine(); //to fill the 3 columns left
-            */
     }
     while(--length);
     Oled_commStop();
@@ -215,11 +215,9 @@ Oled_returnCursor()
 #ifdef DEBUG_ENABLE
     os_printf("Character Counter = %d\n",characterCounter);
 #endif
-    while(characterCounter != 199)
+    while(characterCounter != 0)
     {
         Oled_drawCharacter(fontCharacterArray[42]);
     }
-    Oled_drawCharacter(fontCharacterArray[42]);
-    characterCounter = 0;
     Oled_commStop();
 }
