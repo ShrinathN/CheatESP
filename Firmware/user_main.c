@@ -11,14 +11,34 @@
     You should have received a copy of the GNU General Public License
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
+//uncomment to enable debug
+#define DEBUG_ENABLE 0
+
 #include "user_config.h"
-#include "protocol.h"
 #include "i2c.h"
 #include "oled.h"
 #include "fonts.h"
 #include "oled_functions.h"
+#include "protocol.h"
 #define SET_BAUD(UART_NUMBER, BAUD_RATE) uart_div_modify(UART_NUMBER, UART_CLK_FREQ / BAUD_RATE)
 
+void ICACHE_FLASH_ATTR
+initFunction()
+{
+    i2c_init();
+    Oled_init();
+    SetupNetwork();
+}
+
+void user_init(void)
+{
+    SET_BAUD(0,115200); //sets the BAUD rate to 115200
+    initFunction();
+}
+
+
+//==========FOR REFERENCE==========
+/*
 void ICACHE_FLASH_ATTR exampleHelloFunction();
 
 //string to print
@@ -44,3 +64,4 @@ void ICACHE_FLASH_ATTR exampleHelloFunction()
     Oled_returnCursor();
     Oled_writeString(newString, sizeof(newString)); //function to write the string
 }
+*/

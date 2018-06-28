@@ -11,28 +11,144 @@
     You should have received a copy of the GNU General Public License
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
-/* This file will deal with all the functions related to the protocol this watch will follow
+//comment while compiling
+#include "user_config.h"
+//#include "oled_functions.h"
+#define PACKET_TYPE 0x0
+
+//==========CONFIG==========
+#define AP_SSID "Ruchi.2.floor.1"
+#define AP_PASSWORD "9884887737" //uncomment if you're using a password
+#define IP_BYTEORDER_FIX(a,b,c,d) ((uint32)((d) & 0xff) << 24) | ((uint32)((c) & 0xff) << 16) | ((uint32)((b) & 0xff) << 8)  | (uint32)((a) & 0xff)
+//==========================
+
+enum{
+    MESSAGE_PACKET_0 = 0x0,
+    MESSAGE_PACKET_1 = 0x1,
+    MESSAGE_PACKET_2 = 0x2,
+    IMAGE_PACKET_0 = 0x3,
+    IMAGE_PACKET_1 = 0x4,
+    IMAGE_PACKET_2 = 0x5,
+    IMAGE_PACKET_3 = 0x6,
+    IMAGE_PACKET_4 = 0x7,
+    IMAGE_PACKET_5 = 0x8,
+    IMAGE_PACKET_6 = 0x9,
+    IMAGE_PACKET_7 = 0xA,
+    IMAGE_PACKET_8 = 0xB,
+    IMAGE_PACKET_9 = 0xC,
+    IMAGE_PACKET_10 = 0xD,
+};
+
+struct espconn * esp;
+/* This function will be called whenver data is received from the server
+ * The data will be received in packets of a maximum of 95 bytes, since the callback function will
  *
- * ===OVERVIEW===
- * 1.The ESP8266 is the "client", will function in STATION_MODE
- * 2.A mobile device will act as the "server", and host the WiFi network
- * 3.The ESP8266 will request the file listing from the server, by connecting to the server on a port and,
- * send the request code.
- * 4.The response will send a packet
- *
- * Since the data receive callback function recommends the received data be ~100 bytes,
- * packets will be limited to 95 bytes at a time. The server software will handle this.
- *
- * ======CODES======
- * All codes are single byte
- *
- * ===FILE LISTING===
- * Code(0x10)
- *
- * ===FILE LISTING RESPONSE===
- * Code(0x10 + {number of files}), {array of filenames separated by a 0x2Bh character}
- * Since the font map is 42 characters, 6 bits are used per character
- *
- * ===FILE REQUEST===
  *
 */
+void ICACHE_FLASH_ATTR
+SocketDataRecvCallbackFunction(void * arg, char *dataPointer, unsigned short packetLength)
+{
+    system_soft_wdt_stop();
+#ifdef DEBUG_ENABLE
+    os_printf("Packet received\n");
+#endif
+    //this is the section for a message packet
+    if(dataPointer[PACKET_TYPE] == MESSAGE_PACKET_0)
+    {
+#ifdef DEBUG_ENABLE
+    os_printf("MESSAGE_PACKET_0 detected\n");
+#endif
+        Oled_eraseScreen();
+#ifdef DEBUG_ENABLE
+    os_printf("Screen erased\n");
+#endif
+        Oled_returnCursor();
+#ifdef DEBUG_ENABLE
+    os_printf("Cursor returned\n");
+#endif
+        Oled_writeString(dataPointer + 1, packetLength - 1); //write all the stuff on the screen
+#ifdef DEBUG_ENABLE
+    os_printf("String written\n");
+#endif
+    system_soft_wdt_restart();
+    }
+    //if the packet is a non-first message packet
+    else if((dataPointer[PACKET_TYPE] == MESSAGE_PACKET_1) ||
+            (dataPointer[PACKET_TYPE] == MESSAGE_PACKET_2))
+    {
+        Oled_writeString(dataPointer + 1, packetLength - 1);
+    }
+}
+
+/* This function will be called whenever there is a successful connection from the ESP to the server
+ *
+*/
+void ICACHE_FLASH_ATTR
+SocketConnectCallbackFunction(void * arg)
+{
+    struct espconn * localEsp = (struct espconn *)arg;
+    uint8 initByte = 'a';//this is the init message
+    espconn_send(localEsp, &initByte, 1); //sends the init message over :)
+}
+
+void ICACHE_FLASH_ATTR
+connectToServer()
+{
+#ifdef DEBUG_ENABLE
+    os_printf("Running connect routine\n");
+#endif
+    esp = (struct espconn *)os_zalloc(sizeof(struct espconn)); //allocating space for espconn struct
+    esp_tcp *tcp = (esp_tcp *)os_zalloc(sizeof(esp_tcp)); //allocating space for esp_tcp struct
+
+
+    esp->type = ESPCONN_TCP; //setting operation mode as TCP
+    esp->proto.tcp = (esp_tcp *)tcp; //setting the info as tcp
+    esp->proto.tcp->local_port = espconn_port(); //getting an unused port to use
+    esp->proto.tcp->remote_port = 8000; //setting the remote server's port as 8000
+
+    //android's APs' IP is 192.168.43.1
+    esp->proto.tcp->remote_ip[0] = 192;
+    esp->proto.tcp->remote_ip[1] = 168;
+    esp->proto.tcp->remote_ip[2] = 0;
+    esp->proto.tcp->remote_ip[3] = 107;
+
+    esp->state = ESPCONN_NONE; //setting the state as none
+    espconn_regist_connectcb(esp, SocketConnectCallbackFunction); //registering on connect callback function
+    espconn_regist_recvcb(esp, SocketDataRecvCallbackFunction); //registering the data recv callback function
+    espconn_connect(esp); //connecting the esp to the server
+#ifdef DEBUG_ENABLE
+    os_printf("Completed connect routine\n");
+#endif
+}
+
+/* WiFi event handler function
+ *
+*/
+void ICACHE_FLASH_ATTR
+WifiEventHandlerCallbackFunction(System_Event_t * systemEvent)
+{
+    if(systemEvent->event == EVENT_STAMODE_GOT_IP) //is executed when an IP is obtained
+        connectToServer(); //call to connect to the server
+    else if(systemEvent->event == EVENT_STAMODE_DISCONNECTED) //if the AP has disconnected
+        espconn_delete(esp);
+}
+
+/* This function will connect the ESP8266 to the WiFi network
+ * If a password is set, uncomment the AP_PASSWORD line
+*/
+void ICACHE_FLASH_ATTR
+SetupNetwork()
+{
+#ifdef DEBUG_ENABLE
+    os_printf("Network setup routine\n");
+#endif
+    struct station_config * statCon = (struct station_config *)os_zalloc(sizeof(struct station_config)); //allocating space for the struct
+    os_strcpy(statCon->ssid, AP_SSID); //copying the SSID
+#ifdef AP_PASSWORD //if the AP_PASSWORD is defined, copy the password
+    os_strcpy(statCon->password, AP_PASSWORD); //copying the password
+#endif
+    wifi_set_opmode_current(STATION_MODE); //setting as station mode
+    wifi_station_set_config_current(statCon); //setting config as statCon
+    os_free(statCon); //freeing up the space
+    wifi_set_event_handler_cb(WifiEventHandlerCallbackFunction);
+}

@@ -127,6 +127,8 @@ Oled_drawCharacter(uint8 * character)
     characterCounter++; //increments the counter indicating the number of characters on the screen
     if(characterCounter % NEWLINE_CHARACTER_THRESHOLD == 0) //if the current line is full, newline
         Oled_EndOfLine(); //to fill the 3 columns left
+    if(characterCounter >= SCREEN_THRESHOLD) //reset the character counter if the screen is full
+        characterCounter = 0;
     return OLED_SUCCESS; //returns success
 }
 
@@ -144,6 +146,23 @@ Oled_newline()
     while((characterCounter % NEWLINE_CHARACTER_THRESHOLD) > 0);//loops while the line is not full
 }
 
+void ICACHE_FLASH_ATTR
+Oled_commStart()
+{
+    i2c_startCondition();
+    i2c_writeData(OLED_ADDRESS);
+    i2c_checkForAck();
+    i2c_writeData(CONTROL_BYTE_DATA);
+    i2c_checkForAck();
+}
+
+void ICACHE_FLASH_ATTR
+Oled_commStop()
+{
+    i2c_stopCondition();
+}
+
+
 /* NOTE
  * This function is experimental, invoking this function MAY cause the watchdog to reset
  * If so, this will be replaced by a os_task or os_timer implementation
@@ -154,11 +173,7 @@ Oled_newline()
 uint8 ICACHE_FLASH_ATTR
 Oled_writeString(uint8 * array, uint8 length)
 {
-    i2c_startCondition();
-    i2c_writeData(OLED_ADDRESS);
-    i2c_checkForAck();
-    i2c_writeData(CONTROL_BYTE_DATA);
-    i2c_checkForAck();
+    Oled_commStart();
     do
     {
         if(*array != 43) //43 is newline character
@@ -172,6 +187,7 @@ Oled_writeString(uint8 * array, uint8 length)
             */
     }
     while(--length);
+    Oled_commStop();
 }
 
 /*function to erase the screen
@@ -180,28 +196,30 @@ Oled_writeString(uint8 * array, uint8 length)
 uint8 ICACHE_FLASH_ATTR
 Oled_eraseScreen()
 {
+    Oled_commStart();
     uint16 erasecounter; //counter to erase the screen
-    i2c_startCondition();
-    i2c_writeData(OLED_ADDRESS);
-    i2c_checkForAck();
-    i2c_writeData(CONTROL_BYTE_DATA);
-    i2c_checkForAck();
     for(erasecounter = 0; erasecounter < 128*8; erasecounter++) //loop while the whole screen hasn't been processed
     {
         i2c_writeData(0x0);//write a 0x0 to clear the column
         if(!i2c_checkForAck())//check for ACK
             return OLED_FAILURE;
     }
-    i2c_stopCondition();
+    Oled_commStop();
     return OLED_SUCCESS;
 }
 
 void ICACHE_FLASH_ATTR
 Oled_returnCursor()
 {
-    while(characterCounter != 200)
+    Oled_commStart();
+#ifdef DEBUG_ENABLE
+    os_printf("Character Counter = %d\n",characterCounter);
+#endif
+    while(characterCounter != 199)
     {
         Oled_drawCharacter(fontCharacterArray[42]);
     }
+    Oled_drawCharacter(fontCharacterArray[42]);
     characterCounter = 0;
+    Oled_commStop();
 }
