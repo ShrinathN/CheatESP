@@ -12,7 +12,7 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 //comment while compiling
-#include "user_config.h"
+//#include "user_config.h"
 //#include "oled_functions.h"
 #define PACKET_TYPE 0x0
 

@@ -180,7 +180,7 @@ Oled_writeString(uint8 * array, uint8 length)
         {
             Oled_drawCharacter(fontCharacterArray[*(array)]);
         }
-        else if(*array == 43) //43 is the signal for a newline
+        else //if(*array == 43) //43 is the signal for a newline
         {
             Oled_newline(); //newline if 43 is encountered
         }

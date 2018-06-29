@@ -20,6 +20,7 @@
 #include "fonts.h"
 #include "oled_functions.h"
 #include "protocol.h"
+#include "interrupt_config.h"
 #define SET_BAUD(UART_NUMBER, BAUD_RATE) uart_div_modify(UART_NUMBER, UART_CLK_FREQ / BAUD_RATE)
 
 void ICACHE_FLASH_ATTR
