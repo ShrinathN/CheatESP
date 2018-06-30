@@ -1,3 +1,4 @@
+// This file contains everything related to networking, and connectivity aspect
 /*  Copyright (C) 2018 Shrinath Nimare
     This file is part of CheatESP
     This program is free software: you can redistribute it and/or modify

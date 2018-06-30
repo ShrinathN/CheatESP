@@ -1,3 +1,4 @@
+// This file acts as a wrapper between the I2C function calls and the OLED command calls
 /*  Copyright (C) 2018 Shrinath Nimare
     This file is part of CheatESP
     This program is free software: you can redistribute it and/or modify
@@ -10,11 +11,6 @@
     GNU General Public License for more details.
     You should have received a copy of the GNU General Public License
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
-*/
-/*NOTE
- * This header file depends on the "i2c.h" file to function
- * The i2c.h file contains the implementation of soft i2c
- * Also this file will use a lot of stuff from oled.h file
 */
 
 //Comment out or remove these lines when compiling

@@ -1,3 +1,4 @@
+// This file has the soft i2c implementation for ESP8266
 /*  Copyright (C) 2018 Shrinath Nimare
     This file is part of CheatESP
     This program is free software: you can redistribute it and/or modify
@@ -11,7 +12,8 @@
     You should have received a copy of the GNU General Public License
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
-#include "user_config.h"
+//comment while compiling
+//#include "user_config.h"
 
 #define I2C_SCL_PIN 0
 #define I2C_SCL_MUX PERIPHS_IO_MUX_GPIO0_U

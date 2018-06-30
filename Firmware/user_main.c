@@ -1,3 +1,5 @@
+// main file with entry point
+
 /*  Copyright (C) 2018 Shrinath Nimare
     This file is part of CheatESP
     This program is free software: you can redistribute it and/or modify
@@ -20,6 +22,7 @@
 #include "fonts.h"
 #include "oled_functions.h"
 #include "protocol.h"
+#include "interface.h"
 #include "interrupt_config.h"
 #define SET_BAUD(UART_NUMBER, BAUD_RATE) uart_div_modify(UART_NUMBER, UART_CLK_FREQ / BAUD_RATE)
 
@@ -31,12 +34,13 @@ initFunction()
     SetupNetwork();
 }
 
+//==========ENTRY POINT==========
 void user_init(void)
 {
     SET_BAUD(0,115200); //sets the BAUD rate to 115200
     initFunction();
 }
-
+//===============================
 
 //==========FOR REFERENCE==========
 /*
