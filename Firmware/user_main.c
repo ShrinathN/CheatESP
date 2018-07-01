@@ -31,6 +31,7 @@ initFunction()
 {
     i2c_init();
     Oled_init();
+    setupInterrupt();
     SetupNetwork();
 }
 

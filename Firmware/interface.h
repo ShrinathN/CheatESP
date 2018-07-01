@@ -38,12 +38,12 @@ buttonPressHandler(uint8 numberOfButtonPresses)
     {
         Oled_eraseScreen();
         Oled_returnCursor();
-        Oled_writeString(docString, os_strlen(docString));
+        Oled_writeString(docString, sizeof(docString));
     }
     else if(numberOfButtonPresses == 2)
     {
         Oled_eraseScreen();
         Oled_returnCursor();
-        Oled_writeString(rabbitString, os_strlen(rabbitString));
+        Oled_writeString(rabbitString, sizeof(rabbitString));
     }
 }

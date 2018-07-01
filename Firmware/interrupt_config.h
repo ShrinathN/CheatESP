@@ -56,12 +56,18 @@ and pulsesLastSecond parameters of timerStatus struct to 0
 void ICACHE_FLASH_ATTR
 gpioInterruptHandlerFunction()
 {
+#ifdef DEBUG_ENABLE
+    os_printf("GPIO interrupt routine running\n");
+#endif
     os_delay_us(50*1000); //50ms delay after press for debouncing purpose, EXPERIMENTAL
     uint32 gpio_status = GPIO_REG_READ(GPIO_STATUS_ADDRESS); //read the gpio interrupt status
     GPIO_REG_WRITE(GPIO_STATUS_W1TC_ADDRESS, gpio_status); //clearing interrupt
     if(timerStatus.timerRunning) //if the timer is running, increment pulses
     {
         timerStatus.pulsesLastSecond++;//incrementing the number of pulses at every run of this
+#ifdef DEBUG_ENABLE
+    os_printf("Timer running %d\n", timerStatus.pulsesLastSecond);
+#endif
     }
     else //if the timer wasn't running already, start it
     {
