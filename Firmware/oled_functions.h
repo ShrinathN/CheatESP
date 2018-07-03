@@ -14,7 +14,7 @@
 */
 
 //Comment out or remove these lines when compiling
-//#include "user_config.h"
+#include "user_config.h"
 //#include "i2c.h"
 //#include "fonts.h"
 //#include "oled.h"
@@ -33,6 +33,9 @@
 uint8 characterCounter = 0; //counter to keep a check of the number of characters on the screen right now
 #define NEWLINE_CHARACTER_THRESHOLD 25 //use this macros to define the threshold for new line
 #define SCREEN_THRESHOLD 200
+#define NEWLINE_CHARACTER 70 //newline
+
+typedef uint8 OledString;
 
 /* This function will do the following-
  * 1. Generate an I2C start condition
@@ -172,13 +175,13 @@ Oled_writeString(uint8 * array, uint8 length)
     Oled_commStart();
     do
     {
-        if(*array != 43) //43 is newline character
+        if(*array != NEWLINE_CHARACTER)
         {
             Oled_drawCharacter(fontCharacterArray[*(array)]);
         }
-        else //if(*array == 43) //43 is the signal for a newline
+        else
         {
-            Oled_newline(); //newline if 43 is encountered
+            Oled_newline(); //newline if NEWLINE_CHARACTER is encountered
         }
         array++;
     }
@@ -216,4 +219,63 @@ Oled_returnCursor()
         Oled_drawCharacter(fontCharacterArray[42]);
     }
     Oled_commStop();
+}
+
+uint8 * ICACHE_FLASH_ATTR
+stringToOledString(char * string, OledString * buffer)
+{
+    uint8 counter, byteRead, toDisplay;
+    for(counter = 0; counter < os_strlen(string); counter++)
+    {
+        byteRead = string[counter];
+        if(byteRead > 96 && byteRead < 123) //lower case
+        {
+            toDisplay = byteRead - 97;
+        }
+        else if(byteRead > 64 && byteRead < 91) //upper case
+        {
+            toDisplay = byteRead - 65;
+        }
+        else if(byteRead > 47 && byteRead < 58) //number
+        {
+            toDisplay = (byteRead - 47) + 25;
+        }
+        else if(byteRead == 32) //space character
+        {
+            toDisplay = 42;
+        }
+        else if(byteRead == '\n') //newline character
+        {
+            toDisplay = 70;
+        }
+        else if(byteRead == '.') //.
+        {
+            toDisplay = 36;
+        }
+        else if(byteRead == ',') //,
+        {
+            toDisplay = 37;
+        }
+        else if(byteRead == '+') //+
+        {
+            toDisplay = 38;
+        }
+        else if(byteRead == '-') //-
+        {
+            toDisplay = 39;
+        }
+        else if(byteRead == '*') //.
+        {
+            toDisplay = 40;
+        }
+        else if(byteRead == '/') //.
+        {
+            toDisplay = 41;
+        }
+        else if(byteRead == ':') //.
+        {
+            toDisplay = 43;
+        }
+        buffer[counter] = toDisplay;
+    }
 }

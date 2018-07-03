@@ -20,27 +20,21 @@ aka the button etc
 //#include "user_config.h"
 //#include "oled_functions.h"
 
-/* Test function to explore using a similar mechanism to drive the user interface
- *
+/* This function will handle the changing of UI elements when the interface button is pressed a number of times
 */
-
-//this string should show, "whats up doc"
-static uint8 docString[] = {0x16, 0x7, 0x0, 0x13, 0x12, 0x2a, 0x14, 0xf, 0x2a, 0x3, 0xe, 0x2};
-
-//this string should show, "rabbit wabbit"
-static uint8 rabbitString[] = {0x11, 0x0, 0x1, 0x1, 0x8, 0x13, 0x2a, 0x16, 0x0, 0x1, 0x1, 0x8, 0x13};
-
-
 void ICACHE_FLASH_ATTR
 buttonPressHandler(uint8 numberOfButtonPresses)
 {
-    if(numberOfButtonPresses == 1)
+    if(numberOfButtonPresses == 0)//this is supposed to be the time function
     {
-        Oled_eraseScreen();
-        Oled_returnCursor();
-        Oled_writeString(docString, sizeof(docString));
+        Oled_eraseScreen(); //first we erase the screen
+        Oled_returnCursor(); //then we return the cursor to the start
+        OledString * tempTextBuffer = (OledString *)os_zalloc(os_strlen(sntp_get_real_time(realTime)));// then we allocate x number of bytes to a tempTextBuffer
+        stringToOledString(sntp_get_real_time(realTime), tempTextBuffer); //then we convert the realTime string to OledString, and store it in
+        Oled_writeString(tempTextBuffer, sizeof(tempTextBuffer));
+        os_free(tempTextBuffer);
     }
-    else if(numberOfButtonPresses == 2)
+    else if(numberOfButtonPresses == 1)//normal UI
     {
         Oled_eraseScreen();
         Oled_returnCursor();

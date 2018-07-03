@@ -17,6 +17,7 @@
 #define DEBUG_ENABLE 0
 
 #include "user_config.h"
+#include "timerkeeping.h"
 #include "i2c.h"
 #include "oled.h"
 #include "fonts.h"

@@ -45,9 +45,7 @@ void main()
         in = fopen(filenameString, "r");
         length = 0;
         while(((tempChar = fgetc(in)) != EOF) && length < 99)
-        {
             buffer[length++] = tempChar;
-        }
         write(acc, buffer,length);
         fclose(in);
     }
