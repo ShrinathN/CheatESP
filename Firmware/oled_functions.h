@@ -14,7 +14,7 @@
 */
 
 //Comment out or remove these lines when compiling
-#include "user_config.h"
+//#include "user_config.h"
 //#include "i2c.h"
 //#include "fonts.h"
 //#include "oled.h"
@@ -229,53 +229,29 @@ stringToOledString(char * string, OledString * buffer)
     {
         byteRead = string[counter];
         if(byteRead > 96 && byteRead < 123) //lower case
-        {
             toDisplay = byteRead - 97;
-        }
         else if(byteRead > 64 && byteRead < 91) //upper case
-        {
             toDisplay = byteRead - 65;
-        }
         else if(byteRead > 47 && byteRead < 58) //number
-        {
             toDisplay = (byteRead - 47) + 25;
-        }
         else if(byteRead == 32) //space character
-        {
             toDisplay = 42;
-        }
         else if(byteRead == '\n') //newline character
-        {
             toDisplay = 70;
-        }
         else if(byteRead == '.') //.
-        {
             toDisplay = 36;
-        }
         else if(byteRead == ',') //,
-        {
             toDisplay = 37;
-        }
         else if(byteRead == '+') //+
-        {
             toDisplay = 38;
-        }
         else if(byteRead == '-') //-
-        {
             toDisplay = 39;
-        }
         else if(byteRead == '*') //.
-        {
             toDisplay = 40;
-        }
         else if(byteRead == '/') //.
-        {
             toDisplay = 41;
-        }
         else if(byteRead == ':') //.
-        {
             toDisplay = 43;
-        }
         buffer[counter] = toDisplay;
     }
 }

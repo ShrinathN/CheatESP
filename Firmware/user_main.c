@@ -14,7 +14,7 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 //uncomment to enable debug
-#define DEBUG_ENABLE 0
+//#define DEBUG_ENABLE 0
 
 #include "user_config.h"
 #include "timerkeeping.h"
@@ -32,6 +32,8 @@ initFunction()
 {
     i2c_init();
     Oled_init();
+    Oled_eraseScreen();
+    Oled_returnCursor();
     setupInterrupt();
     SetupNetwork();
 }

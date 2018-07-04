@@ -20,6 +20,18 @@ aka the button etc
 //#include "user_config.h"
 //#include "oled_functions.h"
 
+
+LOCAL os_timer_t screenTimeoutTimer;
+
+/* Function to be executed when the screen has been idle for 5 seconds
+*/
+void ICACHE_FLASH_ATTR
+screenTimeoutFunction()
+{
+    Oled_eraseScreen(); //first we erase the screen
+    Oled_returnCursor(); //then we return the cursor to the start
+}
+
 /* This function will handle the changing of UI elements when the interface button is pressed a number of times
 */
 void ICACHE_FLASH_ATTR
@@ -31,13 +43,14 @@ buttonPressHandler(uint8 numberOfButtonPresses)
         Oled_returnCursor(); //then we return the cursor to the start
         OledString * tempTextBuffer = (OledString *)os_zalloc(os_strlen(sntp_get_real_time(realTime)));// then we allocate x number of bytes to a tempTextBuffer
         stringToOledString(sntp_get_real_time(realTime), tempTextBuffer); //then we convert the realTime string to OledString, and store it in
-        Oled_writeString(tempTextBuffer, sizeof(tempTextBuffer));
+        os_printf("Length:%d\nSize:%d",os_strlen(sntp_get_real_time(realTime)), sizeof(*tempTextBuffer));
+        Oled_writeString(tempTextBuffer, os_strlen(sntp_get_real_time(realTime)));
         os_free(tempTextBuffer);
+        os_timer_disarm(&screenTimeoutTimer);
+        os_timer_setfn(&screenTimeoutTimer, screenTimeoutFunction, NULL);
+        os_timer_arm(&screenTimeoutTimer, 5000, 0);
     }
     else if(numberOfButtonPresses == 1)//normal UI
     {
-        Oled_eraseScreen();
-        Oled_returnCursor();
-        Oled_writeString(rabbitString, sizeof(rabbitString));
     }
 }
