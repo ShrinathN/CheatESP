@@ -41,7 +41,11 @@ initFunction()
 //==========ENTRY POINT==========
 void user_init(void)
 {
+#ifdef DEBUG_ENABLE
     SET_BAUD(0,115200); //sets the BAUD rate to 115200
+#else
+    system_uart_swap();
+#endif
     initFunction();
 }
 //===============================

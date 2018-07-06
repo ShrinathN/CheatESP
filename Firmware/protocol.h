@@ -40,6 +40,7 @@ enum{
     IMAGE_PACKET_10 = 0xD,
 };
 
+//use this struct to communicate with the socket from outside the header file
 struct espconn * esp;
 /* This function will be called whenver data is received from the server
  * The data will be received in packets of a maximum of 95 bytes, since the callback function will

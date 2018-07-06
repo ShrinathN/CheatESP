@@ -20,8 +20,23 @@ aka the button etc
 //#include "user_config.h"
 //#include "oled_functions.h"
 
+extern struct espconn * esp;
 
 LOCAL os_timer_t screenTimeoutTimer;
+
+enum stat
+{
+    TIME_MODE = 0x0,
+    TEXT_MODE
+};
+
+struct _operationStatus_
+{
+    enum stat status;
+}operationStatus;
+
+uint8 fileCounter;
+uint8 buffer[5];
 
 /* Function to be executed when the screen has been idle for 5 seconds
 */
@@ -37,20 +52,37 @@ screenTimeoutFunction()
 void ICACHE_FLASH_ATTR
 buttonPressHandler(uint8 numberOfButtonPresses)
 {
+    os_timer_disarm(&screenTimeoutTimer); //clears the currently running screen timeout timer
     if(numberOfButtonPresses == 0)//this is supposed to be the time function
     {
+        operationStatus.status = TIME_MODE;
         Oled_eraseScreen(); //first we erase the screen
         Oled_returnCursor(); //then we return the cursor to the start
-        OledString * tempTextBuffer = (OledString *)os_zalloc(os_strlen(sntp_get_real_time(realTime)));// then we allocate x number of bytes to a tempTextBuffer
+        uint8 * timeSize = (uint8 *)os_zalloc(1); //allocates space for a temp variable to save string space
+        *timeSize = os_strlen(sntp_get_real_time(realTime)); //length of time string
+        OledString * tempTextBuffer = (OledString *)os_zalloc(*timeSize);// then we allocate x number of bytes to a tempTextBuffer
         stringToOledString(sntp_get_real_time(realTime), tempTextBuffer); //then we convert the realTime string to OledString, and store it in
-        os_printf("Length:%d\nSize:%d",os_strlen(sntp_get_real_time(realTime)), sizeof(*tempTextBuffer));
-        Oled_writeString(tempTextBuffer, os_strlen(sntp_get_real_time(realTime)));
-        os_free(tempTextBuffer);
-        os_timer_disarm(&screenTimeoutTimer);
-        os_timer_setfn(&screenTimeoutTimer, screenTimeoutFunction, NULL);
-        os_timer_arm(&screenTimeoutTimer, 5000, 0);
+        Oled_writeString(tempTextBuffer, *timeSize); //write string to the OLED
+        os_free(tempTextBuffer); //free text buffer space
+        os_free(timeSize); //frees up the string length variable
     }
     else if(numberOfButtonPresses == 1)//normal UI
     {
+        if(operationStatus.status != TEXT_MODE) //transition to text mode
+        {
+            fileCounter = 0;
+            operationStatus.status = TEXT_MODE;
+            Oled_eraseScreen(); //first we erase the screen
+            Oled_returnCursor(); //then we return the cursor to the start
+        }
+        else //text mode is already running
+        {
+            os_sprintf(buffer, "%d", fileCounter);
+            espconn_send(esp, buffer, os_strlen(buffer));
+            fileCounter++;
+        }
     }
+    os_timer_disarm(&screenTimeoutTimer); //disarm screen timeout timer
+    os_timer_setfn(&screenTimeoutTimer, screenTimeoutFunction, NULL); //set screen timeout timer function
+    os_timer_arm(&screenTimeoutTimer, 5000, 0); //arm screen timout timer
 }
