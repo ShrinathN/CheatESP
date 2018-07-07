@@ -70,17 +70,12 @@ buttonPressHandler(uint8 numberOfButtonPresses)
     {
         if(operationStatus.status != TEXT_MODE) //transition to text mode
         {
-            fileCounter = 0;
-            operationStatus.status = TEXT_MODE;
-            Oled_eraseScreen(); //first we erase the screen
-            Oled_returnCursor(); //then we return the cursor to the start
+            fileCounter = 0; //reseting  file counter
+            operationStatus.status = TEXT_MODE; //setting the status as TEXT_MODE
         }
-        else //text mode is already running
-        {
-            os_sprintf(buffer, "%d", fileCounter);
-            espconn_send(esp, buffer, os_strlen(buffer));
-            fileCounter++;
-        }
+        os_sprintf(buffer, "%d", fileCounter); //prepare the name of the file to open
+        espconn_send(esp, buffer, os_strlen(buffer)); //send the name of the file
+        fileCounter++; //incement file counter
     }
     os_timer_disarm(&screenTimeoutTimer); //disarm screen timeout timer
     os_timer_setfn(&screenTimeoutTimer, screenTimeoutFunction, NULL); //set screen timeout timer function

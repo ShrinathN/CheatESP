@@ -17,7 +17,7 @@
 */
 
 //uncomment while compiling
-#include "user_config.h"
+//#include "user_config.h"
 #define REPEAT 0x1
 
 uint32 realTime;
@@ -27,6 +27,7 @@ void ICACHE_FLASH_ATTR
 timekeepingFunction()
 {
     realTime++;
+    system_soft_wdt_feed(); //watchdog feed every second
 #ifdef DEBUG_ENABLE
     os_printf("%s\n", sntp_get_real_time(realTime));
 #endif

@@ -39,9 +39,12 @@ void main()
     acc = accept(soc, (struct sockaddr*)&remote, &isz);
     printf("Connected!\n");
     FILE *in;
+    recv(acc, filenameString, 10, 0);
     while(1)
     {
-        scanf("%s", filenameString);
+        bzero(filenameString, 10);
+        recv(acc, filenameString, 10, 0);
+        printf("RECVD %s\n", filenameString);
         in = fopen(filenameString, "r");
         length = 0;
         while(((tempChar = fgetc(in)) != EOF) && length < 99)
