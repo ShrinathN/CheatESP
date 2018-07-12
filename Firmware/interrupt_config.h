@@ -16,67 +16,55 @@ button on U0_RXD pin
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
+#define SHORT_PRESS 0
+#define LONG_PRESS 1
 //comment when compiling
 //#include "user_config.h"
 
-//this struct will keep a record of some details about the timer and button presses
-struct _timerStatus_
-{
-    uint8 timerRunning : 1; //this variable is 1 when the timer is running and 0 otherwise
-    uint8 pulsesLastSecond : 7; //the number of button presses in a second
-} timerStatus;
 LOCAL os_timer_t buttonTapHelper; //timer to run the postButtonTapTimerFunction() function
+LOCAL os_timer_t interruptEnableTimer; //timer to enable interrupts some time after the press is detected
 
-/* This timer will be armed for a second at the first of a GPIO interrupt
- * It will wait a second, and then call a function which will act according to the
-variable pulsesPerSecond
- * At the end of this function timerStatus.timerRunning will be set to 0
+/* This timer function will run to enable int GPIO interrupts
+ * This function is used for debouncing purposes
+*/
+void ICACHE_FLASH_ATTR
+gpioInterruptEnabler()
+{
+    ETS_GPIO_INTR_ENABLE();
+}
+
+/* This timer will be armed for a second at a GPIO interrupt
+ * It will wait a second, and then check if the button is still pressed or not
+ * The buttonPressHandler function will be called with a press type (short or long)
+depending on this
 */
 void ICACHE_FLASH_ATTR
 postButtonTapTimerFunction()
 {
-    timerStatus.timerRunning = 0; //setting as 0 to indicate timer stop
-    //function to handle button presses per second, can be found in the interface.h file
-    buttonPressHandler(timerStatus.pulsesLastSecond);
-
+    uint32 gpio_status = GPIO_REG_READ(GPIO_STATUS_ADDRESS); //read the gpio interrupt status
+    GPIO_REG_WRITE(GPIO_STATUS_W1TC_ADDRESS, gpio_status); //clearing interrupt
+    os_timer_disarm(&interruptEnableTimer); //disarming os_timer_t interruptEnableTimer
+    os_timer_setfn(&interruptEnableTimer, gpioInterruptEnabler, NULL); //setting the function to run
+    os_timer_arm(&interruptEnableTimer, 200, 0); //arm interruptEnableTimer to run in 1000ms, non repeating
+    if(!(gpio_input_get() & BIT3)) //if the bit is not set, its a LONG_PRESS, a SHORT_PRESS otherwise
+        buttonPressHandler(LONG_PRESS);
+    else
+        buttonPressHandler(SHORT_PRESS);
 }
 
 /* This is the interrupt handler function
  * On each interrupt, this function will be called
- * It will first check if the timer is running or not
-by checking if timerStatus.timerRunning is non zero
- * If the timer is not running (=0), the timer will be
-started for a second, non repeating using os_timer_t buttonTapHelper
- * If the timer is running (!=0), every interrupt will
-increment timerStatus.pulsesLastSecond counter
- * The timer function will call a function to take the appropriate
-action after a second based on the number of button clicks, and also reset timerRunning,
-and pulsesLastSecond parameters of timerStatus struct to 0
+ * This function will disable interrupts
+ * Then it will arm os_timer_t buttonTapHelper to call a function postButtonTapTimerFunction
+to ascertain if the press was a long one or short one
 */
 void ICACHE_FLASH_ATTR
 gpioInterruptHandlerFunction()
 {
-#ifdef DEBUG_ENABLE
-    os_printf("GPIO interrupt routine running\n");
-#endif
-    os_delay_us(50*1000); //50ms delay after press for debouncing purpose, EXPERIMENTAL
-    uint32 gpio_status = GPIO_REG_READ(GPIO_STATUS_ADDRESS); //read the gpio interrupt status
-    GPIO_REG_WRITE(GPIO_STATUS_W1TC_ADDRESS, gpio_status); //clearing interrupt
-    if(timerStatus.timerRunning) //if the timer is running, increment pulses
-    {
-        timerStatus.pulsesLastSecond++;//incrementing the number of pulses at every run of this
-#ifdef DEBUG_ENABLE
-    os_printf("Timer running %d\n", timerStatus.pulsesLastSecond);
-#endif
-    }
-    else //if the timer wasn't running already, start it
-    {
-        timerStatus.timerRunning = 1; //setting this as 1 because the timer is running
-        timerStatus.pulsesLastSecond = 0; //reseting pulsesPerSecond counter
-        os_timer_disarm(&buttonTapHelper); //disarming os_timer _t
-        os_timer_setfn(&buttonTapHelper, postButtonTapTimerFunction, NULL); //setting the function to run
-        os_timer_arm(&buttonTapHelper, 1000, 0); //arm buttonTapHelper to run in 1000ms, non repeating
-    }
+    ETS_GPIO_INTR_DISABLE(); //disables interrupts until h
+    os_timer_disarm(&buttonTapHelper); //disarming os_timer_t buttonTapHelper
+    os_timer_setfn(&buttonTapHelper, postButtonTapTimerFunction, NULL); //setting the function to run
+    os_timer_arm(&buttonTapHelper, 1000, 0); //arm buttonTapHelper to run in 1000ms, non repeating
 }
 
 void ICACHE_FLASH_ATTR
@@ -88,6 +76,4 @@ setupInterrupt()
     gpio_pin_intr_state_set(GPIO_ID_PIN(3), GPIO_PIN_INTR_NEGEDGE); //trigger interrupt on a positive edge
     ETS_GPIO_INTR_ATTACH(gpioInterruptHandlerFunction, NULL);//this attaches "gpio_interrupt_handler" as the gpio interrupt handler function
     ETS_GPIO_INTR_ENABLE(); //gpio interrupt enable
-    timerStatus.timerRunning = 0; //setting both parameters as 0
-    timerStatus.pulsesLastSecond = 0;
 }
