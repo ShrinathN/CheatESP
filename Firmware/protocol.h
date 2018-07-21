@@ -51,36 +51,27 @@ void ICACHE_FLASH_ATTR
 SocketDataRecvCallbackFunction(void * arg, char *dataPointer, unsigned short packetLength)
 {
     system_soft_wdt_stop();
-#ifdef DEBUG_ENABLE
-    os_printf("Packet received\n");
-#endif
+    OledStringStruct *tempOledStruct = (OledStringStruct *)os_zalloc(sizeof(OledStringStruct));
+    tempOledStruct->ptr = dataPointer + 1;
+    tempOledStruct->len = packetLength - 1;
     //this is the section for a message packet
     if(dataPointer[PACKET_TYPE] == MESSAGE_PACKET_0)
     {
-#ifdef DEBUG_ENABLE
-    os_printf("MESSAGE_PACKET_0 detected\n");
-#endif
         Oled_eraseScreen();
-#ifdef DEBUG_ENABLE
-    os_printf("Screen erased\n");
-#endif
         Oled_returnCursor();
-#ifdef DEBUG_ENABLE
-    os_printf("Cursor returned\n");
-#endif
-        Oled_writeString(dataPointer + 1, packetLength - 1); //write all the stuff on the screen
-#ifdef DEBUG_ENABLE
-    os_printf("String written\n");
-#endif
-    system_soft_wdt_restart();
+        Oled_writeString(tempOledStruct); //write all the stuff on the screen
+        system_soft_wdt_restart();
     }
     //if the packet is a non-first message packet
     else if((dataPointer[PACKET_TYPE] == MESSAGE_PACKET_1) ||
             (dataPointer[PACKET_TYPE] == MESSAGE_PACKET_2))
     {
-        Oled_writeString(dataPointer + 1, packetLength - 1);
+        Oled_writeString(tempOledStruct);
     }
+    os_free(tempOledStruct);
 }
+
+OledStringPtr connectedOledString[9] = {0x02, 0x0e, 0x0d, 0x0d, 0x04, 0x02, 0x13, 0x04, 0x03};
 
 /* This function will be called whenever there is a successful connection from the ESP to the server
  *
@@ -118,10 +109,8 @@ connectToServer()
     espconn_regist_connectcb(esp, SocketConnectCallbackFunction); //registering on connect callback function
     espconn_regist_recvcb(esp, SocketDataRecvCallbackFunction); //registering the data recv callback function
     espconn_connect(esp); //connecting the esp to the server
-#ifdef DEBUG_ENABLE
-    os_printf("Completed connect routine\n");
-#endif
 }
+
 
 /* WiFi event handler function
  *
@@ -131,8 +120,13 @@ WifiEventHandlerCallbackFunction(System_Event_t * systemEvent)
 {
     if(systemEvent->event == EVENT_STAMODE_GOT_IP) //is executed when an IP is obtained
     {
+        OledStringStruct * connectedMessage = (OledStringStruct *)os_zalloc(sizeof(OledStringStruct));
+        connectedMessage->len = 9;
+        connectedMessage->ptr = connectedOledString;
         setupSNTP();
         connectToServer(); //call to connect to the server
+        Oled_writeString(connectedMessage);
+        os_free(connectedMessage);
     }
     else if(systemEvent->event == EVENT_STAMODE_DISCONNECTED) //if the AP has disconnected
         espconn_delete(esp);
@@ -144,9 +138,6 @@ WifiEventHandlerCallbackFunction(System_Event_t * systemEvent)
 void ICACHE_FLASH_ATTR
 SetupNetwork()
 {
-#ifdef DEBUG_ENABLE
-    os_printf("Network setup routine\n");
-#endif
     struct station_config * statCon = (struct station_config *)os_zalloc(sizeof(struct station_config)); //allocating space for the struct
     os_strcpy(statCon->ssid, AP_SSID); //copying the SSID
 #ifdef AP_PASSWORD //if the AP_PASSWORD is defined, copy the password

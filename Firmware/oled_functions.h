@@ -35,7 +35,14 @@ uint8 characterCounter = 0; //counter to keep a check of the number of character
 #define SCREEN_THRESHOLD 200
 #define NEWLINE_CHARACTER 70 //newline
 
-typedef uint8 OledString;
+typedef uint8 OledStringPtr;
+typedef uint8 OledStringLen;
+
+typedef struct
+{
+    OledStringPtr * ptr;
+    OledStringLen len;
+}OledStringStruct;
 
 /* This function will do the following-
  * 1. Generate an I2C start condition
@@ -60,7 +67,7 @@ Oled_init()
             if(!i2c_checkForAck()) //if no ACK
                 return OLED_FAILURE; //return failure
         }
-        while(localTempCounter++ < INIT_STRING_LENGTH); //while all bytes are note sent over, loop
+        while(localTempCounter++ < INIT_STRING_LENGTH); //while all bytes are not sent over, loop
         i2c_stopCondition();
 
         localTempCounter = 0; //reseting
@@ -170,20 +177,22 @@ Oled_commStop()
  * The "array" must contain the character to print according to the font map in fonts.h file
 */
 uint8 ICACHE_FLASH_ATTR
-Oled_writeString(uint8 * array, uint8 length)
+Oled_writeString(OledStringStruct *oledString)
 {
+    OledStringPtr *ptr = oledString->ptr;
+    OledStringLen length = oledString->len;
     Oled_commStart();
     do
     {
-        if(*array != NEWLINE_CHARACTER)
+        if(*ptr != NEWLINE_CHARACTER)
         {
-            Oled_drawCharacter(fontCharacterArray[*(array)]);
+            Oled_drawCharacter(fontCharacterArray[*ptr]);
         }
         else
         {
             Oled_newline(); //newline if NEWLINE_CHARACTER is encountered
         }
-        array++;
+        ptr++;
     }
     while(--length);
     Oled_commStop();
@@ -211,9 +220,6 @@ void ICACHE_FLASH_ATTR
 Oled_returnCursor()
 {
     Oled_commStart();
-#ifdef DEBUG_ENABLE
-    os_printf("Character Counter = %d\n",characterCounter);
-#endif
     while(characterCounter != 0)
     {
         Oled_drawCharacter(fontCharacterArray[42]);
@@ -222,7 +228,7 @@ Oled_returnCursor()
 }
 
 uint8 * ICACHE_FLASH_ATTR
-stringToOledString(char * string, OledString * buffer)
+Oled_stringToOledString(char * string, OledStringPtr * buffer)
 {
     uint8 counter, byteRead, toDisplay;
     for(counter = 0; counter < os_strlen(string); counter++)
