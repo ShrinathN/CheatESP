@@ -18,8 +18,6 @@
 #define PACKET_TYPE 0x0
 
 //==========CONFIG==========
-#define AP_SSID "Ruchi.2.floor.1"
-#define AP_PASSWORD "9884887737" //uncomment if you're using a password
 #define IP_BYTEORDER_FIX(a,b,c,d) ((uint32)((d) & 0xff) << 24) | ((uint32)((c) & 0xff) << 16) | ((uint32)((b) & 0xff) << 8)  | (uint32)((a) & 0xff)
 //==========================
 

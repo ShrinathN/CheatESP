@@ -16,60 +16,74 @@ aka the button etc
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
+#define SHORT_PRESS 0
+#define LONG_PRESS 1
+
 //comment when compiling
 //#include "user_config.h"
 //#include "oled_functions.h"
 
+extern MenuStruct GlobalMenuStruct;
 extern struct espconn * esp; //for comm
 extern uint32 realTime; //real time
 
-
 LOCAL os_timer_t screenTimeoutTimer;
 
-uint8 fileCounter;
-uint8 buffer[5];
+/* This function will be executed when there's a short press
+ * It will first check if the screen is on
+ * If the screen is off, it will turn on the screen for 5 seconds
+ * If the screen is on, it will
+*/
+void ICACHE_FLASH_ATTR
+next()
+{
+    if(screenStatus.screenOn == 0) //if the screen is off
+    {
+        Oled_printMenuInfo(&GlobalMenuStruct);
+        Oled_setScreenOn(1); //turn it on
+    }
+    else //meaning the screen is already on
+    {
+        GlobalMenuStruct.currentElement++; //increment selected element counter
+        Oled_drawGlobalMenu();
+    }
+}
+
+void ICACHE_FLASH_ATTR
+select()
+{
+    if(screenStatus.screenOn == 0) //the screen is off
+        Oled_setScreenOn(1);
+    else //the screen is already on
+    {
+        void (*toRun)();
+        toRun = (void *)GlobalMenuStruct.menuFunctions[GlobalMenuStruct.currentElement];
+        toRun();
+    }
+}
 
 /* Function to be executed when the screen has been idle for 5 seconds
 */
 void ICACHE_FLASH_ATTR
 screenTimeoutFunction()
 {
-    Oled_eraseScreen(); //first we erase the screen
-    Oled_returnCursor(); //then we return the cursor to the start
+    Oled_setScreenOn(0);
 }
 
-/* This function will handle the changing of UI elements when the interface button is pressed a number of times
+/* This function will handle the button press
 */
 
 void ICACHE_FLASH_ATTR
 buttonPressHandler(uint8 numberOfButtonPresses)
 {
     os_timer_disarm(&screenTimeoutTimer); //clears the currently running screen timeout timer
-    if(numberOfButtonPresses == 0) //this is supposed to show the time
-    {
-        uint8 timeBufferLength = strlen(sntp_get_real_time(realTime)); //getting the real time string length
-        uint8 * timeBuffer = (uint8 * )os_zalloc(timeBufferLength); //allocating memory for the temp buffer to store the real time
-        OledStringPtr * oledTimeString = (OledStringPtr *)os_zalloc(timeBufferLength); //allocating memory for oledstring containing the time
-        os_sprintf(timeBuffer, "%s", sntp_get_real_time(realTime)); //prints copies the real time string to
-        Oled_stringToOledString(timeBuffer, oledTimeString); //converts the string to oled string
-        OledStringStruct * oledTimeStringStruct = (OledStringStruct *)os_zalloc(sizeof(OledStringStruct));
-        oledTimeStringStruct->len = timeBufferLength;
-        oledTimeStringStruct->ptr = oledTimeString;
 
-        Oled_eraseScreen(); //clearing screen
-        Oled_returnCursor(); //returning cursor
-        Oled_writeString(oledTimeStringStruct); //writing the time string
-
-        os_free(timeBuffer); //deallocating memory
-        os_free(oledTimeString);
-        os_free(oledTimeStringStruct);
-    }
-    else if(numberOfButtonPresses == 1)
-    {
-
-    }
+    if(numberOfButtonPresses == SHORT_PRESS) //this is supposed to show the time
+        next();
+    else if(numberOfButtonPresses == LONG_PRESS)
+        select();
 
     os_timer_disarm(&screenTimeoutTimer); //disarm screen timeout timer
     os_timer_setfn(&screenTimeoutTimer, screenTimeoutFunction, NULL); //set screen timeout timer function
-    os_timer_arm(&screenTimeoutTimer, 5000, 0); //arm screen timout timer
+    os_timer_arm(&screenTimeoutTimer, SCREEN_TIMEOUT_MS, 0); //arm screen timout timer
 }

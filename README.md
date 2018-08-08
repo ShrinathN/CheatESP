@@ -1,2 +1,2 @@
 # CheatESP
-Firmware for an ESP8266 based watch like thing that can display text.
+Framework to develop firmware for an ESP8266 based smart device, sporting an OLED screen, and a button.

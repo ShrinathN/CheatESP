@@ -38,3 +38,11 @@
 #include "espconn.h"
 #include "wpa2_enterprise.h"
 
+
+//===============CONFIG===============
+
+#define AP_SSID "Ruchi.2.floor.1"
+#define AP_PASSWORD "9884887737" //comment if you're not using a password
+#define SCREEN_TIMEOUT_MS 5000
+#define DEBUG_ENABLE 0 //uncomment to enable debug
+//====================================

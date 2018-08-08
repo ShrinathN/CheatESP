@@ -43,9 +43,11 @@ postButtonTapTimerFunction()
 {
     uint32 gpio_status = GPIO_REG_READ(GPIO_STATUS_ADDRESS); //read the gpio interrupt status
     GPIO_REG_WRITE(GPIO_STATUS_W1TC_ADDRESS, gpio_status); //clearing interrupt
+
     os_timer_disarm(&interruptEnableTimer); //disarming os_timer_t interruptEnableTimer
     os_timer_setfn(&interruptEnableTimer, gpioInterruptEnabler, NULL); //setting the function to run
     os_timer_arm(&interruptEnableTimer, 200, 0); //arm interruptEnableTimer to run in 1000ms, non repeating
+
     if(!(gpio_input_get() & BIT3)) //if the bit is not set, its a LONG_PRESS, a SHORT_PRESS otherwise
         buttonPressHandler(LONG_PRESS);
     else

@@ -13,8 +13,6 @@
     You should have received a copy of the GNU General Public License
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
-//uncomment to enable debug
-//#define DEBUG_ENABLE 0
 
 #include "user_config.h"
 #include "timerkeeping.h"
@@ -27,6 +25,8 @@
 #include "interrupt_config.h"
 #define SET_BAUD(UART_NUMBER, BAUD_RATE) uart_div_modify(UART_NUMBER, UART_CLK_FREQ / BAUD_RATE)
 
+void itwerk();
+
 void ICACHE_FLASH_ATTR
 initFunction()
 {
@@ -36,6 +36,38 @@ initFunction()
     Oled_returnCursor();
     setupInterrupt();
     SetupNetwork();
+
+    static OledStringPtr spa[6] = {8,19,4,12,42,27};
+    static OledStringPtr spb[6] = {8,19,4,12,42,28};
+    static OledStringPtr spc[6] = {8,19,4,12,42,29};
+    static OledStringStruct a;
+    static OledStringStruct b;
+    static OledStringStruct c;
+    a.ptr = spa;
+    a.len = 6;
+    b.ptr = spb;
+    b.len = 6;
+    c.ptr = spc;
+    c.len = 6;
+    MenuStruct *menuStruct;
+    menuStruct = (MenuStruct *)os_zalloc(sizeof(MenuStruct));
+    menuStruct->totalElements = 3;
+    menuStruct->currentElement = 2;
+    Oled_optionSet(menuStruct, 0, itwerk, &a);
+    Oled_optionSet(menuStruct, 1, NULL, &b);
+    Oled_optionSet(menuStruct, 2, NULL, &c);
+    Oled_setGlobalMenu(menuStruct);
+}
+
+void ICACHE_FLASH_ATTR
+itwerk()
+{
+    OledStringStruct p;
+    OledStringPtr pt[7];
+    Oled_stringToOledString("itworks", pt);
+    p.ptr = pt;
+    p.len = 7;
+    Oled_writeString(&p);
 }
 
 //==========ENTRY POINT==========

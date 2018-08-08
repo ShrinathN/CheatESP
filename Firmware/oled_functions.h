@@ -20,7 +20,7 @@
 //#include "oled.h"
 #define OLED_ADDRESS 0x78 //address of the I2C OLED device, change if needed
 #define OLED_SUCCESS 0 //macro to indicate success
-#define OLED_FAILURE -1 //macro to indicate failure
+#define OLED_FAILURE 1 //macro to indicate failure
 
 /* This variable holds the number of characters that have been drawn on the screen, basically it acts as a counter
  * in a normal 128x64 OLED, considering 8x4 fonts, and one column as space between every character,
@@ -37,18 +37,41 @@ uint8 characterCounter = 0; //counter to keep a check of the number of character
 
 typedef uint8 OledStringPtr;
 typedef uint8 OledStringLen;
+typedef void (*MenuCallbackFunction)(void);
 
+
+// this struct will store the info about the screen
+struct _screenStatus_
+{
+    uint8 screenOn : 1; // is the screen on? 1 bit, 1 for true, 0 for false
+}screenStatus;
+
+// This struct will define a a OledStringStruct
+// It is meant to be used with only an oled font mapped strings
 typedef struct
 {
-    OledStringPtr * ptr;
-    OledStringLen len;
+    OledStringPtr * ptr; //this is a pointer to the oled string
+    OledStringLen len; //length of the OLED string
 }OledStringStruct;
+
+// this struct defines the MenuStruct which contains all the details about drawing a menu
+// the callback function will have to be registered for each menu item
+typedef struct
+{
+    OledStringStruct *menuStrings[8]; //this will store the text related to all the menu elements
+    MenuCallbackFunction *menuFunctions[8]; //this array will store the callback functions to
+    uint8 currentElement : 3; //this is the current element
+    uint8 totalElements : 3; //this is the number of total elements
+}MenuStruct;
+
+// this is the pointer to a menustruct which will be used to create the menu
+MenuStruct GlobalMenuStruct;
 
 /* This function will do the following-
  * 1. Generate an I2C start condition
  * 2. Send the I2C slave address
  * 3. Send the init string
- * 4. Send the normal full range useage string
+ * 4. Send the normal full range useage command string
  * 5. Generate I2C stop condition
  *
  * Will return an OLED_FAILURE if NACK
@@ -152,16 +175,23 @@ Oled_newline()
     while((characterCounter % NEWLINE_CHARACTER_THRESHOLD) > 0);//loops while the line is not full
 }
 
+
+/* This function will start communication with the OLED display
+ * the data which is going to come next can be either display data (CONTROL_BYTE_DATA) or command data (CONTROL_BYTE_COMMAND)
+*/
 void ICACHE_FLASH_ATTR
-Oled_commStart()
+Oled_commStart(uint8 controlByteType)
 {
     i2c_startCondition();
     i2c_writeData(OLED_ADDRESS);
     i2c_checkForAck();
-    i2c_writeData(CONTROL_BYTE_DATA);
+    i2c_writeData(controlByteType);
     i2c_checkForAck();
 }
 
+/* This function will generate the i2c stop condition necessary to stop communications with
+ * the OLED display
+*/
 void ICACHE_FLASH_ATTR
 Oled_commStop()
 {
@@ -181,7 +211,13 @@ Oled_writeString(OledStringStruct *oledString)
 {
     OledStringPtr *ptr = oledString->ptr;
     OledStringLen length = oledString->len;
-    Oled_commStart();
+    uint8 counter;
+#ifdef DEBUG_ENABLE
+    os_printf("THIS IS INSIDE THE WRITESTRINGFUNC %d\n",length);
+    for(counter = 0; counter < length; counter++)
+        os_printf("%d\n", *(ptr+counter));
+#endif
+    Oled_commStart(CONTROL_BYTE_DATA);
     do
     {
         if(*ptr != NEWLINE_CHARACTER)
@@ -204,7 +240,7 @@ Oled_writeString(OledStringStruct *oledString)
 uint8 ICACHE_FLASH_ATTR
 Oled_eraseScreen()
 {
-    Oled_commStart();
+    Oled_commStart(CONTROL_BYTE_DATA);
     uint16 erasecounter; //counter to erase the screen
     for(erasecounter = 0; erasecounter < 128*8; erasecounter++) //loop while the whole screen hasn't been processed
     {
@@ -216,10 +252,12 @@ Oled_eraseScreen()
     return OLED_SUCCESS;
 }
 
+/* This function will return the cursor back at the starting position of the screen
+*/
 void ICACHE_FLASH_ATTR
 Oled_returnCursor()
 {
-    Oled_commStart();
+    Oled_commStart(CONTROL_BYTE_DATA);
     while(characterCounter != 0)
     {
         Oled_drawCharacter(fontCharacterArray[42]);
@@ -227,13 +265,31 @@ Oled_returnCursor()
     Oled_commStop();
 }
 
+/* this function is used to turn the OLED display on and off
+*/
+void ICACHE_FLASH_ATTR
+Oled_setScreenOn(uint8 setScreen)
+{
+    if(setScreen == 0 || setScreen == 1)
+    {
+        Oled_commStart(CONTROL_BYTE_COMMAND);
+        i2c_writeData(CMD_SET_DISPLAY_ON(setScreen));
+        i2c_checkForAck();
+        Oled_commStop();
+        screenStatus.screenOn = setScreen;
+    }
+}
+
+/* This string will be used to convert a normal ASCII string to an OLED font
+ * mapped string and stored at the buffer address
+*/
 uint8 * ICACHE_FLASH_ATTR
 Oled_stringToOledString(char * string, OledStringPtr * buffer)
 {
     uint8 counter, byteRead, toDisplay;
     for(counter = 0; counter < os_strlen(string); counter++)
     {
-        byteRead = string[counter];
+        byteRead = (uint8)string[counter];
         if(byteRead > 96 && byteRead < 123) //lower case
             toDisplay = byteRead - 97;
         else if(byteRead > 64 && byteRead < 91) //upper case
@@ -259,5 +315,99 @@ Oled_stringToOledString(char * string, OledStringPtr * buffer)
         else if(byteRead == ':') //.
             toDisplay = 43;
         buffer[counter] = toDisplay;
+    }
+}
+
+/* This function will set the callback function and string for a given menu
+*/
+void ICACHE_FLASH_ATTR
+Oled_optionSet(MenuStruct *menu,uint8 itemNumber, MenuCallbackFunction callback, OledStringStruct *oledStringStruct)
+{
+    menu->menuStrings[itemNumber] = oledStringStruct;
+    menu->menuFunctions[itemNumber] = (MenuCallbackFunction*)callback;
+}
+
+/* this function will set a given menu struct as the global menu struct
+ * which will be used to draw the menu on an interrupt
+*/
+void ICACHE_FLASH_ATTR
+Oled_setGlobalMenu(MenuStruct *menu)
+{
+    uint8 tempCounter;
+    GlobalMenuStruct.currentElement = menu->currentElement;
+    GlobalMenuStruct.totalElements = menu->totalElements;
+    for(tempCounter = 0; tempCounter < menu->totalElements; tempCounter++)
+    {
+        GlobalMenuStruct.menuFunctions[tempCounter] = menu->menuFunctions[tempCounter];
+        GlobalMenuStruct.menuStrings[tempCounter] = menu->menuStrings[tempCounter];
+    }
+}
+
+/* This function will be used to draw a menustruct.
+*/
+void ICACHE_FLASH_ATTR
+Oled_drawMenu(MenuStruct * menu)
+{
+#ifdef DEBUG_ENABLE
+    os_printf("Intthefunc\n");
+#endif
+    if(menu->currentElement >= menu->totalElements) //checking if the current menu element is greater than total elements
+        menu->currentElement = 0; //if so, reset the current element counter
+    Oled_eraseScreen(); //erase the screen
+    Oled_returnCursor(); //return the cursor
+    OledStringStruct * tempOledStringStruct = (OledStringStruct *)os_zalloc(sizeof(OledStringStruct)); //allocate space for the string struct to display newline character
+    OledStringPtr characterToDraw = NEWLINE_CHARACTER; //setting the character to NEWLINE_CHARACTER, will print after each menu entry
+    tempOledStringStruct->len = 1; //setting the length of the temp string struct as 1
+    tempOledStringStruct->ptr = &characterToDraw; //setting the character to draw
+    uint8 tempCounter; //temp counter hehe
+    for(tempCounter = 0; tempCounter < menu->totalElements; tempCounter++) //will loop over all menu items
+    {
+#ifdef DEBUG_ENABLE
+        os_printf("ITERATION1%d\n",tempCounter);
+#endif
+        Oled_writeString((OledStringStruct *)menu->menuStrings[tempCounter]); //draw the menu item at tempCounter
+        if(tempCounter == menu->currentElement) //highlight the current element
+        {
+#ifdef DEBUG_ENABLE
+            os_printf("INSIDE IF\n");
+#endif
+            characterToDraw = 40; //star symbol
+            Oled_writeString(tempOledStringStruct); //draw the symbol
+        }
+        characterToDraw = NEWLINE_CHARACTER; //setting the character back to NEWLINE_CHARACTER
+        Oled_writeString(tempOledStringStruct); //draws the newline
+    }
+    os_free(tempOledStringStruct);
+}
+
+void ICACHE_FLASH_ATTR
+Oled_drawGlobalMenu()
+{
+    Oled_drawMenu(&GlobalMenuStruct);
+}
+
+void ICACHE_FLASH_ATTR
+Oled_printMenuInfo(MenuStruct * menu)
+{
+    uint8 elementCounter, stringCounter;
+    os_printf("menu : %x\n"
+              "menu->menuStrings : %x\n"
+              "menu->currentElement : %d\n"
+              "menu->totalElements : %d\n",
+              menu, menu->menuStrings, menu->currentElement,
+              menu->totalElements);
+    for(elementCounter = 0; elementCounter < menu->totalElements; elementCounter++)
+    {
+        os_printf("menu->menuFunctions[%d] : %x\n\n"
+                  "menu->menuStrings[%d]->ptr : %x\n"
+                  "menu->menuStrings[%d]->len : %d\n",
+                  elementCounter,menu->menuFunctions[elementCounter],
+                  elementCounter,menu->menuStrings[elementCounter]->ptr,
+                  elementCounter,menu->menuStrings[elementCounter]->len);
+        for(stringCounter = 0; stringCounter < menu->menuStrings[elementCounter]->len; stringCounter++)
+        {
+            os_printf("menu->menuStrings[%d]->ptr[%d] : %d\n",
+                      elementCounter,stringCounter, menu->menuStrings[elementCounter]->ptr[stringCounter]);
+        }
     }
 }
