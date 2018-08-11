@@ -1,3 +1,5 @@
+#ifndef OLED_H
+#define OLED_H
 // This file contains the list of commands for the I2C OLED screen
 /*  Copyright (C) 2018 Shrinath Nimare
     This file is part of CheatESP
@@ -12,9 +14,7 @@
     You should have received a copy of the GNU General Public License
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
-//general macro section
-#define OFF 0
-#define ON 1
+#include "user_config.h"
 
 //control bytes, to be sent after the address
 //command control byte instructs that the following bytes will be command bytes
@@ -148,40 +148,40 @@
 
 
 #define INIT_STRING_LENGTH 20
-char OledinitString[INIT_STRING_LENGTH] = {
+static char OledinitString[INIT_STRING_LENGTH] = {
     CONTROL_BYTE_COMMAND,//control byte, following transmission will contain command data bytes
-    CMD_SET_DISPLAY_ON(OFF),//display off
+    (char)CMD_SET_DISPLAY_ON(OFF),//display off
 
-    CMD_SET_MUX_RATIO,//setting mux ratio
+    (char)CMD_SET_MUX_RATIO,//setting mux ratio
     DEFAULT_MUX_RATIO,//64mux, reset 0b00111111
 
-    CMD_SET_DISPLAY_OFFSET,//set vertical shift by com
+    (char)CMD_SET_DISPLAY_OFFSET,//set vertical shift by com
     DEFAULT_DISPLAY_OFFSET,//00h, reset
 
     CMD_SET_DISPLAY_START_LINE(0x00),//set display start line as 00, reset
-    CMD_SET_SEGMENT_REMAP(ON),//segment remap, column address 127 mapped to SEG0
-    CMD_SET_COM_OUTPUT_SCAN(ON),//remapped mode, scan COM ports in reverse
+    (char)CMD_SET_SEGMENT_REMAP(ON),//segment remap, column address 127 mapped to SEG0
+    (char)CMD_SET_COM_OUTPUT_SCAN(ON),//remapped mode, scan COM ports in reverse
 
-    CMD_SET_COM_PIN_CONFIG,//set COM pin hardware config
+    (char)CMD_SET_COM_PIN_CONFIG,//set COM pin hardware config
     DEFAULT_COM_PIN_CONFIG,//alternative COM pin config
 
-    CMD_SET_CONTRAST,//set contrast
+    (char)CMD_SET_CONTRAST,//set contrast
     DEFAULT_CONTRAST,//reset
 
-    CMD_ENTIRE_DISPLAY_ON(OFF),//resume to ram content display, reset
-    CMD_SET_DISPLAY_INVERTED(OFF),//normal display, reset
+    (char)CMD_ENTIRE_DISPLAY_ON(OFF),//resume to ram content display, reset
+    (char)CMD_SET_DISPLAY_INVERTED(OFF),//normal display, reset
 
-    CMD_SET_DISPLAY_CLOCK,//set display clock
-    0xf0,//not reset
+    (char)CMD_SET_DISPLAY_CLOCK,//set display clock
+    (char)0xf0,//not reset
 
-    CMD_TOGGLE_CHARGE_PUMP,//charge pump
+    (char)CMD_TOGGLE_CHARGE_PUMP,//charge pump
     SET_CHARGE_PUMP_STATUS(ON),//enable charge pump during display on
 
-    CMD_SET_DISPLAY_ON(ON)//turn on display
+    (char)CMD_SET_DISPLAY_ON(ON)//turn on display
 };
 //=====starting of full range string=====
 #define SET_FULL_RANGE_STRING_LENGTH 11
-unsigned char OledsetFullRangeString[SET_FULL_RANGE_STRING_LENGTH] = {
+static unsigned char OledsetFullRangeString[SET_FULL_RANGE_STRING_LENGTH] = {
     CONTROL_BYTE_COMMAND,//control byte, following transmission will contain command data bytes
 
     CMD_SET_COLUMN_START_NIBBLE_LOW(DEFAULT_COLUMN_START_NIBBLE_LOW),
@@ -198,3 +198,6 @@ unsigned char OledsetFullRangeString[SET_FULL_RANGE_STRING_LENGTH] = {
     CMD_SET_MEMORY_ADDRESSING_MODE,
     MEMORY_ADDRESSING_MODE_HORIZONTAL
 };
+
+
+#endif

@@ -1,3 +1,5 @@
+#ifndef FONTS_H
+#define FONTS_H
 // This file has a list of all the fonts on board
 /*  Copyright (C) 2018 Shrinath Nimare
     This file is part of CheatESP
@@ -235,3 +237,4 @@ static uint8 fontCharacterArray[44][4] = {
 
 
 };
+#endif

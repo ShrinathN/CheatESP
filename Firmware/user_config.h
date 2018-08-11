@@ -1,3 +1,6 @@
+#ifndef USER_CONFIG_H
+#define USER_CONFIG_H
+
 // has a list of all files to include
 /*  Copyright (C) 2018 Shrinath Nimare
     This file is part of CheatESP
@@ -38,11 +41,25 @@
 #include "espconn.h"
 #include "wpa2_enterprise.h"
 
+//===============MACROS===============
+#define SET_BAUD(UART_NUMBER, BAUD_RATE) uart_div_modify(UART_NUMBER, UART_CLK_FREQ / BAUD_RATE)
+//====================================
+
+
+//===============GLOBAL DEFINES===============
+#define OFF 0
+#define ON 1
+#define REPEAT 0x1
+#define NO_REPEAT 0x0
+//============================================
+
 
 //===============CONFIG===============
 
 #define AP_SSID "Ruchi.2.floor.1"
 #define AP_PASSWORD "9884887737" //comment if you're not using a password
 #define SCREEN_TIMEOUT_MS 5000
-#define DEBUG_ENABLE 0 //uncomment to enable debug
+//#define DEBUG_ENABLE 0 //uncomment to enable debug
 //====================================
+
+#endif

@@ -1,6 +1,5 @@
-/* This file will deal the actual timekeeping operations
- * The ESP will fetch the time using SNTP
-*/
+#ifndef TIMEKEEPING_H
+#define TIMEKEEPING_H
 
 /*  Copyright (C) 2018 Shrinath Nimare
     This file is part of CheatESP
@@ -16,44 +15,11 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-//uncomment while compiling
-//#include "user_config.h"
-#define REPEAT 0x1
-
 uint32 realTime;
-LOCAL os_timer_t timekeepingTimer;
 
-void ICACHE_FLASH_ATTR
-timekeepingFunction()
-{
-    realTime++;
-    system_soft_wdt_feed(); //watchdog feed every second
-#ifdef DEBUG_ENABLE
-    os_printf("%s\n", sntp_get_real_time(realTime));
+//function definitions
+void Timekeeping_realTimeIncrementFunction(void);
+void Timekeeping_sntpTimeRetriever(void);
+void Timekeeping_setupSNTP(void);
+
 #endif
-}
-
-/* This function will increment the RTC time every second
- * will also print the time through the UART_TX if debugging is enabled
-*/
-void ICACHE_FLASH_ATTR
-initialTimerFunction()
-{
-    realTime = sntp_get_current_timestamp() + 1800;
-    os_timer_setfn(&timekeepingTimer, timekeepingFunction, NULL);
-    os_timer_arm(&timekeepingTimer, 1000, REPEAT);
-}
-
-//sntp setup, everything is self explanatory
-void ICACHE_FLASH_ATTR
-setupSNTP()
-{
-    sntp_stop();
-    sntp_setservername(0, "0.in.pool.ntp.org");
-    sntp_setservername(1, "1.asia.pool.ntp.org");
-    sntp_set_timezone(+5);
-    sntp_init();
-    os_timer_disarm(&timekeepingTimer);
-    os_timer_setfn(&timekeepingTimer, initialTimerFunction, NULL);
-    os_timer_arm(&timekeepingTimer, 5000, 0); //5 second wait, to fetch the first time
-}

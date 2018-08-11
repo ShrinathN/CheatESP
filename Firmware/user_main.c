@@ -20,23 +20,37 @@
 #include "oled.h"
 #include "fonts.h"
 #include "oled_functions.h"
-#include "protocol.h"
+#include "network.h"
 #include "interface.h"
 #include "interrupt_config.h"
-#define SET_BAUD(UART_NUMBER, BAUD_RATE) uart_div_modify(UART_NUMBER, UART_CLK_FREQ / BAUD_RATE)
-
-void itwerk();
 
 void ICACHE_FLASH_ATTR
 initFunction()
 {
     i2c_init();
-    Oled_init();
-    Oled_eraseScreen();
-    Oled_returnCursor();
-    setupInterrupt();
-    SetupNetwork();
+    OledFunctions_init();
+    OledFunctions_eraseScreen();
+    OledFunctions_returnCursor();
+    InterruptConfig_setupInterrupt();
+    Network_SetupNetwork();
+}
 
+void ICACHE_FLASH_ATTR
+itwerk()
+{
+    OledStringStruct p;
+    OledStringPtr pt[7];
+    OledFunctions_stringToOledString("itworks", pt);
+    p.ptr = pt;
+    p.len = 7;
+    OledFunctions_writeString(&p);
+}
+
+//==========ENTRY POINT==========
+void user_init(void)
+{
+    system_uart_swap();
+    initFunction();
     static OledStringPtr spa[6] = {8,19,4,12,42,27};
     static OledStringPtr spb[6] = {8,19,4,12,42,28};
     static OledStringPtr spc[6] = {8,19,4,12,42,29};
@@ -53,30 +67,8 @@ initFunction()
     menuStruct = (MenuStruct *)os_zalloc(sizeof(MenuStruct));
     menuStruct->totalElements = 3;
     menuStruct->currentElement = 2;
-    Oled_optionSet(menuStruct, 0, itwerk, &a);
-    Oled_optionSet(menuStruct, 1, NULL, &b);
-    Oled_optionSet(menuStruct, 2, NULL, &c);
-    Oled_setGlobalMenu(menuStruct);
-}
-
-void ICACHE_FLASH_ATTR
-itwerk()
-{
-    OledStringStruct p;
-    OledStringPtr pt[7];
-    Oled_stringToOledString("itworks", pt);
-    p.ptr = pt;
-    p.len = 7;
-    Oled_writeString(&p);
-}
-
-//==========ENTRY POINT==========
-void user_init(void)
-{
-#ifdef DEBUG_ENABLE
-    SET_BAUD(0,115200); //sets the BAUD rate to 115200
-#else
-    system_uart_swap();
-#endif
-    initFunction();
+    OledFunctions_optionSet(menuStruct, 0, itwerk, &a);
+    OledFunctions_optionSet(menuStruct, 1, NULL, &b);
+    OledFunctions_optionSet(menuStruct, 2, NULL, &c);
+    OledFunctions_setGlobalMenu(menuStruct);
 }
