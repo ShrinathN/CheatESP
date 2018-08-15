@@ -1,38 +1,6 @@
-EESchema Schematic File Version 2
-LIBS:power
-LIBS:device
-LIBS:switches
-LIBS:relays
-LIBS:motors
-LIBS:transistors
-LIBS:conn
-LIBS:linear
-LIBS:regul
-LIBS:74xx
-LIBS:cmos4000
-LIBS:adc-dac
-LIBS:memory
-LIBS:xilinx
-LIBS:microcontrollers
-LIBS:dsp
-LIBS:microchip
-LIBS:analog_switches
-LIBS:motorola
-LIBS:texas
-LIBS:intel
-LIBS:audio
-LIBS:interface
-LIBS:digital-audio
-LIBS:philips
-LIBS:display
-LIBS:cypress
-LIBS:siliconi
-LIBS:opto
-LIBS:atmel
-LIBS:contrib
-LIBS:valves
+EESchema Schematic File Version 4
 LIBS:CheatESP-cache
-EELAYER 25 0
+EELAYER 26 0
 EELAYER END
 $Descr A4 11693 8268
 encoding utf-8
@@ -47,10 +15,10 @@ Comment3 ""
 Comment4 ""
 $EndDescr
 $Comp
-L GND #PWR?
+L power:GND #PWR01
 U 1 1 5AFC39E3
 P 4300 4800
-F 0 "#PWR?" H 4300 4550 50  0001 C CNN
+F 0 "#PWR01" H 4300 4550 50  0001 C CNN
 F 1 "GND" H 4300 4650 50  0000 C CNN
 F 2 "" H 4300 4800 50  0001 C CNN
 F 3 "" H 4300 4800 50  0001 C CNN
@@ -58,10 +26,10 @@ F 3 "" H 4300 4800 50  0001 C CNN
 	1    0    0    -1  
 $EndComp
 $Comp
-L +3V3 #PWR?
+L power:+3V3 #PWR02
 U 1 1 5AFC39F7
 P 4800 2800
-F 0 "#PWR?" H 4800 2650 50  0001 C CNN
+F 0 "#PWR02" H 4800 2650 50  0001 C CNN
 F 1 "+3V3" H 4800 2940 50  0000 C CNN
 F 2 "" H 4800 2800 50  0001 C CNN
 F 3 "" H 4800 2800 50  0001 C CNN
@@ -94,10 +62,8 @@ Text Label 2700 3900 2    60   ~ 0
 SCL
 Entry Wire Line
 	4200 4700 4300 4800
-Entry Wire Line
-	4400 2800 4500 2900
 $Comp
-L R R1
+L CheatESP-rescue:R R1
 U 1 1 5AFC3E5D
 P 2850 3500
 F 0 "R1" H 2950 3500 50  0000 C CNN
@@ -108,7 +74,7 @@ F 3 "" H 2850 3500 50  0001 C CNN
 	1    0    0    -1  
 $EndComp
 $Comp
-L R R2
+L CheatESP-rescue:R R2
 U 1 1 5AFC3F5A
 P 3150 3600
 F 0 "R2" H 3250 3600 50  0000 C CNN
@@ -118,34 +84,6 @@ F 3 "" H 3150 3600 50  0001 C CNN
 	1    3150 3600
 	1    0    0    -1  
 $EndComp
-Connection ~ 4500 3700
-Connection ~ 4500 3900
-Connection ~ 4500 4100
-Connection ~ 4500 4300
-Connection ~ 4200 4300
-Connection ~ 4200 4100
-Connection ~ 4200 3900
-Connection ~ 4200 3700
-Connection ~ 4800 2800
-Connection ~ 2700 3900
-Connection ~ 2700 4100
-Connection ~ 2700 4300
-Connection ~ 2700 3700
-Wire Bus Line
-	2400 4800 6050 4800
-Wire Wire Line
-	4500 2900 4500 3700
-Wire Wire Line
-	4500 4100 4400 4100
-Wire Wire Line
-	4400 4100 4400 3250
-Wire Wire Line
-	4400 3250 4500 3250
-Connection ~ 4500 3250
-Wire Bus Line
-	2700 3900 4200 3900
-Wire Bus Line
-	2700 4100 4200 4100
 Wire Wire Line
 	4200 4300 4200 4700
 Entry Wire Line
@@ -160,7 +98,7 @@ Wire Notes Line
 	4800 4350 4800 3550
 Wire Notes Line
 	4800 3550 3900 3550
-Text GLabel 4800 3600 2    60   Input ~ 0
+Text GLabel 4350 4150 1    60   Input ~ 0
 ESP8266
 Wire Notes Line
 	2750 4350 2750 3600
@@ -180,8 +118,6 @@ Wire Wire Line
 	3150 3750 3150 4000
 Wire Wire Line
 	2850 3800 2850 3650
-Wire Bus Line
-	2400 2800 6050 2800
 Entry Wire Line
 	3150 2900 3250 2800
 Entry Wire Line
@@ -195,7 +131,7 @@ Wire Wire Line
 Wire Wire Line
 	3150 2900 3150 3450
 $Comp
-L R R3
+L CheatESP-rescue:R R3
 U 1 1 5AFED44E
 P 3350 4550
 F 0 "R3" H 3250 4550 50  0000 C CNN
@@ -206,40 +142,16 @@ F 3 "" H 3350 4550 50  0001 C CNN
 	1    0    0    -1  
 $EndComp
 $Comp
-L R R5
-U 1 1 5AFED49B
-P 5250 4550
-F 0 "R5" H 5150 4550 50  0000 C CNN
-F 1 "4K7" V 5250 4550 50  0000 C CNN
-F 2 "" V 5180 4550 50  0001 C CNN
-F 3 "" H 5250 4550 50  0001 C CNN
-	1    5250 4550
-	1    0    0    -1  
-$EndComp
-$Comp
-L SW_Push SW1
+L CheatESP-rescue:SW_Push SW1
 U 1 1 5AFED4DA
 P 3550 3700
 F 0 "SW1" H 3600 3850 50  0000 L CNN
-F 1 "Interface_Switch_1" H 3550 3640 50  0000 C CNN
+F 1 "Interface button" H 3550 3640 50  0000 C CNN
 F 2 "" H 3550 3900 50  0001 C CNN
 F 3 "" H 3550 3900 50  0001 C CNN
 	1    3550 3700
 	1    0    0    -1  
 $EndComp
-$Comp
-L SW_Push SW3
-U 1 1 5AFED68F
-P 5050 4300
-F 0 "SW3" H 5100 4400 50  0000 L CNN
-F 1 "Interface_Switch_2" H 4900 4200 50  0000 C CNN
-F 2 "" H 5050 4500 50  0001 C CNN
-F 3 "" H 5050 4500 50  0001 C CNN
-	1    5050 4300
-	1    0    0    -1  
-$EndComp
-Entry Wire Line
-	5250 4700 5350 4800
 Entry Wire Line
 	3350 4700 3450 4800
 Wire Wire Line
@@ -247,7 +159,116 @@ Wire Wire Line
 Wire Wire Line
 	3750 3700 4200 3700
 Wire Wire Line
-	5250 4300 5250 4400
-Wire Wire Line
 	4850 4300 4500 4300
+Entry Wire Line
+	3700 3900 3800 4000
+$Comp
+L CheatESP-rescue:SW_Push SW2
+U 1 1 5B73B57D
+P 3800 4350
+F 0 "SW2" H 3850 4500 50  0000 L CNN
+F 1 "Flash Button" H 3800 4600 50  0000 C CNN
+F 2 "" H 3800 4550 50  0001 C CNN
+F 3 "" H 3800 4550 50  0001 C CNN
+	1    3800 4350
+	0    -1   -1   0   
+$EndComp
+Entry Wire Line
+	4100 4700 4200 4800
+NoConn ~ 4850 4300
+$Comp
+L CheatESP-rescue:SW_Push SW3
+U 1 1 5B73C7B5
+P 5700 4100
+F 0 "SW3" H 5750 4250 50  0000 L CNN
+F 1 "RST Button" H 5700 4040 50  0000 C CNN
+F 2 "" H 5700 4300 50  0001 C CNN
+F 3 "" H 5700 4300 50  0001 C CNN
+	1    5700 4100
+	0    1    1    0   
+$EndComp
+$Comp
+L CheatESP-rescue:R R5
+U 1 1 5B73C818
+P 5700 3350
+F 0 "R5" H 5800 3350 50  0000 C CNN
+F 1 "4K7" V 5700 3350 50  0000 C CNN
+F 2 "" V 5630 3350 50  0001 C CNN
+F 3 "" H 5700 3350 50  0001 C CNN
+	1    5700 3350
+	1    0    0    1   
+$EndComp
+Entry Wire Line
+	5700 4700 5800 4800
+Entry Wire Line
+	5600 2800 5700 2900
+Wire Wire Line
+	5700 2900 5700 3200
+Wire Wire Line
+	5700 3500 5700 3900
+Connection ~ 5700 3900
+Wire Wire Line
+	4500 3900 5700 3900
+Entry Wire Line
+	4950 2800 5050 2900
+Wire Wire Line
+	5050 2900 5050 3700
+Wire Wire Line
+	5050 4100 4500 4100
+Wire Wire Line
+	4500 3700 5050 3700
+$Comp
+L CheatESP-rescue:R R4
+U 1 1 5B73EFFF
+P 3950 4550
+F 0 "R4" H 3850 4500 50  0000 C CNN
+F 1 "4K7" V 3950 4550 50  0000 C CNN
+F 2 "" V 3880 4550 50  0001 C CNN
+F 3 "" H 3950 4550 50  0001 C CNN
+	1    3950 4550
+	0    -1   -1   0   
+$EndComp
+Wire Wire Line
+	4100 4700 4100 4550
+Wire Wire Line
+	3800 4150 3800 4000
+$Comp
+L CheatESP-rescue:R R6
+U 1 1 5B73F718
+P 5700 4500
+F 0 "R6" H 5600 4450 50  0000 C CNN
+F 1 "4K7" V 5700 4500 50  0000 C CNN
+F 2 "" V 5630 4500 50  0001 C CNN
+F 3 "" H 5700 4500 50  0001 C CNN
+	1    5700 4500
+	1    0    0    -1  
+$EndComp
+Wire Wire Line
+	5700 4350 5700 4300
+Wire Wire Line
+	5700 4650 5700 4700
+$Comp
+L CheatESP-rescue:R R7
+U 1 1 5B73FEFA
+P 5050 3900
+F 0 "R7" H 4950 3850 50  0000 C CNN
+F 1 "4K7" V 5050 3900 50  0000 C CNN
+F 2 "" V 4980 3900 50  0001 C CNN
+F 3 "" H 5050 3900 50  0001 C CNN
+	1    5050 3900
+	1    0    0    -1  
+$EndComp
+Wire Wire Line
+	5050 3750 5050 3700
+Connection ~ 5050 3700
+Wire Wire Line
+	5050 4050 5050 4100
+Wire Bus Line
+	2700 4100 4200 4100
+Wire Bus Line
+	2700 3900 4200 3900
+Wire Bus Line
+	2400 4800 6050 4800
+Wire Bus Line
+	2400 2800 6050 2800
 $EndSCHEMATC
