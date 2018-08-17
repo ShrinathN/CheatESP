@@ -18,10 +18,17 @@
 #define LONG_PRESS 1
 
 extern MenuStruct GlobalMenuStruct;
+typedef void (*functionPointer)(void);
 
-void Interface_next(void);
-void Interface_select(void);
+void (*Interface_nextPointer)(void);
+void (*Interface_selectPointer)(void);
+
+
+void Interface_defaultNext(void);
+void Interface_defaultSelect(void);
 void Interface_screenTimeoutFunction(void);
 void Interface_buttonPressHandler(uint8);
+void Interface_setNextPointer(functionPointer);
+void Interface_setSelectPointer(functionPointer);
 
 #endif

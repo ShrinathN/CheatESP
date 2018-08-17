@@ -231,8 +231,8 @@ static uint8 fontCharacterArray[44][4] = {
     0x00,
 
     0x00,//:
-    0x1F,//43
-    0x1F,
+    0x36,//43
+    0x36,
     0x00
 
 

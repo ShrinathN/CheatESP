@@ -27,11 +27,11 @@ LOCAL os_timer_t screenTimeoutTimer;
  * If the screen is on, it will
 */
 void ICACHE_FLASH_ATTR
-Interface_next()
+Interface_defaultNext()
 {
     if(screenStatus.screenOn == 0) //if the screen is off
     {
-        OledFunctions_printMenuInfo(&GlobalMenuStruct);
+//        OledFunctions_printMenuInfo(&GlobalMenuStruct);
         OledFunctions_setScreenOn(1); //turn it on
     }
     else //meaning the screen is already on
@@ -42,7 +42,7 @@ Interface_next()
 }
 
 void ICACHE_FLASH_ATTR
-Interface_select()
+Interface_defaultSelect()
 {
     if(screenStatus.screenOn == 0) //the screen is off
         OledFunctions_setScreenOn(1);
@@ -60,22 +60,36 @@ void ICACHE_FLASH_ATTR
 Interface_screenTimeoutFunction()
 {
     OledFunctions_setScreenOn(0);
+    Interface_nextPointer = Interface_defaultNext;
+    Interface_selectPointer = Interface_defaultSelect;
 }
 
 /* This function will handle the button press
 */
 
 void ICACHE_FLASH_ATTR
-Interface_buttonPressHandler(uint8 numberOfButtonPresses)
+Interface_buttonPressHandler(uint8 typeOfButtonPress)
 {
     os_timer_disarm(&screenTimeoutTimer); //clears the currently running screen timeout timer
 
-    if(numberOfButtonPresses == SHORT_PRESS) //this is supposed to show the time
-        Interface_next();
-    else if(numberOfButtonPresses == LONG_PRESS)
-        Interface_select();
+    if(typeOfButtonPress == SHORT_PRESS) //this is supposed to show the time
+        Interface_nextPointer();
+    else if(typeOfButtonPress == LONG_PRESS)
+        Interface_selectPointer();
 
     os_timer_disarm(&screenTimeoutTimer); //disarm screen timeout timer
     os_timer_setfn(&screenTimeoutTimer, (os_timer_func_t *)Interface_screenTimeoutFunction, NULL); //set screen timeout timer function
     os_timer_arm(&screenTimeoutTimer, SCREEN_TIMEOUT_MS, 0); //arm screen timout timer
+}
+
+void ICACHE_FLASH_ATTR
+Interface_setNextPointer(functionPointer ptr)
+{
+    Interface_nextPointer = ptr;
+}
+
+void ICACHE_FLASH_ATTR
+Interface_setSelectPointer(functionPointer ptr)
+{
+    Interface_selectPointer = ptr;
 }

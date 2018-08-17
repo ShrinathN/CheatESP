@@ -18,22 +18,25 @@
 #include "oled_functions.h"
 
 #define PACKET_TYPE 0x0
-#define IP_BYTEORDER_FIX(a,b,c,d) ((uint32)((d) & 0xff) << 24) | ((uint32)((c) & 0xff) << 16) | ((uint32)((b) & 0xff) << 8)  | (uint32)((a) & 0xff)
+#define IP_BYTEORDER_FIX(a,b,c,d) ((uint32)((d) & 0xff) << 24) | \
+    ((uint32)((c) & 0xff) << 16) | \
+    ((uint32)((b) & 0xff) << 8)  | \
+    (uint32)((a) & 0xff)
 
 #define MESSAGE_PACKET_0 0x0
 #define MESSAGE_PACKET_1 0x1
 #define MESSAGE_PACKET_2 0x2
-#define IMAGE_PACKET_0 0x3
-#define IMAGE_PACKET_1 0x4
-#define IMAGE_PACKET_2 0x5
-#define IMAGE_PACKET_3 0x6
-#define IMAGE_PACKET_4 0x7
-#define IMAGE_PACKET_5 0x8
-#define IMAGE_PACKET_6 0x9
-#define IMAGE_PACKET_7 0xA
-#define IMAGE_PACKET_8 0xB
-#define IMAGE_PACKET_9 0xC
-#define IMAGE_PACKET_10 0xD
+//#define IMAGE_PACKET_0 0x3 //these are for future use
+//#define IMAGE_PACKET_1 0x4
+//#define IMAGE_PACKET_2 0x5
+//#define IMAGE_PACKET_3 0x6
+//#define IMAGE_PACKET_4 0x7
+//#define IMAGE_PACKET_5 0x8
+//#define IMAGE_PACKET_6 0x9
+//#define IMAGE_PACKET_7 0xA
+//#define IMAGE_PACKET_8 0xB
+//#define IMAGE_PACKET_9 0xC
+//#define IMAGE_PACKET_10 0xD
 
 static OledStringPtr connectedOledString[9] = {0x02, 0x0e, 0x0d, 0x0d, 0x04, 0x02, 0x13, 0x04, 0x03};
 

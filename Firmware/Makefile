@@ -2,7 +2,13 @@ CC = xtensa-lx106-elf-gcc
 CFLAGS = -I. -I/opt/esp-open-sdk/sdk/include -DICACHE_FLASH -mlongcalls
 LDLIBS = -nostdlib -Wl,--start-group -lmain -ldriver -lnet80211 -lwpa -llwip -lpp -lphy -lc -Wl,--end-group -lgcc
 LDFLAGS = -Teagle.app.v6.ld
-SRC = user_main.c i2c.c interface.c interrupt_config.c network.c oled_functions.c timerkeeping.c
+SRC = user_main.c \
+libs/i2c.c \
+libs/interface.c \
+libs/interrupt_config.c \
+libs/network.c \
+libs/oled_functions.c \
+libs/timerkeeping.c
 
 all: 0x00000.bin
 

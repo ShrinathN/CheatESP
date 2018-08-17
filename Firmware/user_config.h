@@ -59,6 +59,7 @@
 #define AP_SSID "iot7"
 #define AP_PASSWORD "jehova007" //comment if you're not using a password
 #define SCREEN_TIMEOUT_MS 5000
+#define BUTTON_TIMEOUT_TIME_MS 1000
 //#define DEBUG_ENABLE 0 //uncomment to enable debug
 //====================================
 

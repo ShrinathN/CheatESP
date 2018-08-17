@@ -64,7 +64,7 @@ InterruptConfig_gpioInterruptHandlerFunction()
     ETS_GPIO_INTR_DISABLE(); //disables interrupts until h
     os_timer_disarm(&buttonTapHelper); //disarming os_timer_t buttonTapHelper
     os_timer_setfn(&buttonTapHelper, (os_timer_func_t *)InterruptConfig_postButtonTapTimerFunction, NULL); //setting the function to run
-    os_timer_arm(&buttonTapHelper, 1000, 0); //arm buttonTapHelper to run in 1000ms, non repeating
+    os_timer_arm(&buttonTapHelper, BUTTON_TIMEOUT_TIME_MS, 0); //arm buttonTapHelper to run in 1000ms, non repeating
 }
 
 void ICACHE_FLASH_ATTR
