@@ -75,7 +75,10 @@ uint8 OledFunctions_eraseScreen(void);
 void OledFunctions_returnCursor(void);
 void OledFunctions_setScreenOn(uint8);
 uint8 * OledFunctions_stringToOledString(char * string, OledStringPtr * buffer);
-void OledFunctions_optionSet(MenuStruct *menu, uint8 itemNumber, MenuCallbackFunction callback, OledStringStruct *oledStringStruct);
+void OledFunctions_optionSet(MenuStruct *menu,
+                             uint8 itemNumber,
+                             MenuCallbackFunction callback,
+                             OledStringStruct *oledStringStruct);
 void OledFunctions_setGlobalMenu(MenuStruct *);
 void OledFunctions_drawMenu(MenuStruct *);
 void OledFunctions_drawGlobalMenu(void);

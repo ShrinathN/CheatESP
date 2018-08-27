@@ -17,31 +17,17 @@
 #include "oled_functions.h"
 #include "timerkeeping.h"
 
-/* This function will be called whenver data is received from the server
- * The data will be received in packets of a maximum of 95 bytes, since the callback function will
- *
- *
-*/
 void ICACHE_FLASH_ATTR
 Network_SocketDataRecvCallbackFunction(void * arg, char *dataPointer, unsigned short packetLength)
 {
-    OledStringStruct *tempOledStruct = (OledStringStruct *)os_zalloc(sizeof(OledStringStruct));
-    tempOledStruct->ptr = dataPointer + 1;
-    tempOledStruct->len = packetLength - 1;
-    //this is the section for a message packet
-    if(dataPointer[PACKET_TYPE] == MESSAGE_PACKET_0)
-    {
-        OledFunctions_eraseScreen();
-        OledFunctions_returnCursor();
-        OledFunctions_writeString(tempOledStruct); //write all the stuff on the screen
-    }
-    //if the packet is a non-first message packet
-    else if((dataPointer[PACKET_TYPE] == MESSAGE_PACKET_1) ||
-            (dataPointer[PACKET_TYPE] == MESSAGE_PACKET_2))
-    {
-        OledFunctions_writeString(tempOledStruct);
-    }
-    os_free(tempOledStruct);
+    static OledStringStruct * networkStringStruct;
+    networkStringStruct = os_zalloc(sizeof(OledStringStruct));
+    networkStringStruct->len = (OledStringLen)os_strlen(dataPointer);
+    networkStringStruct->ptr = (OledStringPtr *)os_zalloc(networkStringStruct->len);
+    OledFunctions_stringToOledString(dataPointer,networkStringStruct->ptr);
+    OledFunctions_writeString(networkStringStruct);
+    os_free(networkStringStruct->ptr);
+    os_free(networkStringStruct);
 }
 
 /* This function will be called whenever there is a successful connection from the ESP to the server
@@ -68,10 +54,11 @@ Network_connectToServer()
     esp->proto.tcp->remote_port = 8000; //setting the remote server's port as 8000
 
     //android's APs' IP is 192.168.43.1
+    //first device connected to IP is 192.168.43.218
     esp->proto.tcp->remote_ip[0] = 192;
     esp->proto.tcp->remote_ip[1] = 168;
-    esp->proto.tcp->remote_ip[2] = 0;
-    esp->proto.tcp->remote_ip[3] = 107;
+    esp->proto.tcp->remote_ip[2] = 43;
+    esp->proto.tcp->remote_ip[3] = 218;
 
     esp->state = ESPCONN_NONE; //setting the state as none
     espconn_regist_connectcb(esp, Network_SocketConnectCallbackFunction); //registering on connect callback function
@@ -92,7 +79,7 @@ Network_WifiEventHandlerCallbackFunction(System_Event_t * systemEvent)
         connectedMessage->len = 9;
         connectedMessage->ptr = connectedOledString;
         Timekeeping_setupSNTP();
-        Network_connectToServer(); //call to connect to the server
+//        Network_connectToServer(); //call to connect to the server
         OledFunctions_writeString(connectedMessage);
         os_free(connectedMessage);
     }

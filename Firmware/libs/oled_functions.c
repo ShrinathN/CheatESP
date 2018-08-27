@@ -162,7 +162,7 @@ OledFunctions_commStop()
 uint8 ICACHE_FLASH_ATTR
 OledFunctions_writeString(OledStringStruct *oledString)
 {
-uint8 counter;
+    uint8 counter;
     OledStringPtr *ptr = oledString->ptr;
     OledStringLen length = oledString->len;
     OledFunctions_commStart(CONTROL_BYTE_DATA);

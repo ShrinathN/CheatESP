@@ -1,28 +1,14 @@
-// main file with entry point
-
-/*  Copyright (C) 2018 Shrinath Nimare
-    This file is part of CheatESP
-    This program is free software: you can redistribute it and/or modify
-    it under the terms of the GNU General Public License as published by
-    the Free Software Foundation, either version 3 of the License, or
-    (at your option) any later version.
-    This program is distributed in the hope that it will be useful,
-    but WITHOUT ANY WARRANTY; without even the implied warranty of
-    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-    GNU General Public License for more details.
-    You should have received a copy of the GNU General Public License
-    along with this program.  If not, see <http://www.gnu.org/licenses/>.
-*/
-
 #include "user_config.h"
-#include "libs/timerkeeping.h"
-#include "libs/i2c.h"
-#include "libs/oled.h"
-#include "libs/fonts.h"
-#include "libs/oled_functions.h"
-#include "libs/network.h"
-#include "libs/interface.h"
-#include "libs/interrupt_config.h"
+
+#define NETWORK_TEST "Network test"
+#define HELLO_WORLD_TEST "HELLO WORLD TEST"
+#define TIME_STRING "Display current time"
+
+MenuStruct mainMenu;
+static OledStringStruct helloWorldTest;
+static OledStringStruct networkingTest;
+static OledStringStruct timeTest;
+
 
 void ICACHE_FLASH_ATTR
 initFunction()
@@ -35,97 +21,78 @@ initFunction()
     Network_SetupNetwork();
 }
 
-
 void ICACHE_FLASH_ATTR
-chosen_Next()
+helloworld_function(void)
 {
-    OledStringStruct *menuItem1 = (OledStringStruct *)os_zalloc(sizeof(OledStringStruct));
-    menuItem1->len = (unsigned char)os_strlen("short press");
-    menuItem1->ptr = (OledStringPtr *)os_zalloc(menuItem1->len);
-    OledFunctions_stringToOledString("short press", menuItem1->ptr);
-    OledFunctions_writeString(menuItem1);
-    os_free(menuItem1->ptr);
-    os_free(menuItem1);
+    OledFunctions_eraseScreen();
+    OledFunctions_returnCursor();
+    static OledStringStruct * helloWorld;
+    helloWorld = (OledStringStruct *)os_zalloc(sizeof(OledStringPtr));
+    helloWorld->len = (OledStringLen)os_strlen("Hello World\n");
+    helloWorld->ptr = (OledStringPtr *)os_zalloc(helloWorld->len);
+    OledFunctions_stringToOledString("Hello World\n", helloWorld->ptr);
+    uint8 counter = 0;
+    for(counter = 0; counter < 8; counter++)
+    {
+        OledFunctions_writeString(helloWorld);
+    }
+    os_free(helloWorld->ptr);
+    os_free(helloWorld);
 }
 
 void ICACHE_FLASH_ATTR
-chosen_Select()
+networking_function(void)
 {
-    OledStringStruct *menuItem1 = (OledStringStruct *)os_zalloc(sizeof(OledStringStruct));
-    menuItem1->len = (unsigned char)os_strlen("long press");
-    menuItem1->ptr = (OledStringPtr *)os_zalloc(menuItem1->len);
-    OledFunctions_stringToOledString("long press", menuItem1->ptr);
-    OledFunctions_writeString(menuItem1);
-    os_free(menuItem1->ptr);
-    os_free(menuItem1);
+    OledFunctions_eraseScreen();
+    OledFunctions_returnCursor();
+    Network_connectToServer();
 }
 
 void ICACHE_FLASH_ATTR
-second_stage_function()
+time_function(void)
 {
-    Interface_setNextPointer(chosen_Next);
-    Interface_setSelectPointer(chosen_Select);
-}
+    static OledStringStruct * tempTimeString;
+    tempTimeString = (OledStringStruct *)os_zalloc(sizeof(OledStringStruct));
+    tempTimeString->len = (uint8)os_strlen(sntp_get_real_time(realTime));
+    tempTimeString->ptr = (OledStringPtr *)os_zalloc(tempTimeString->len);
+    OledFunctions_stringToOledString(sntp_get_real_time(realTime), tempTimeString->ptr);
+    OledFunctions_eraseScreen();
+    OledFunctions_returnCursor();
+    OledFunctions_writeString(tempTimeString);
+    os_free(tempTimeString->ptr);
+    os_free(tempTimeString);
 
-void ICACHE_FLASH_ATTR
-first_stage_select()
-{
-    MenuStruct * menu = (MenuStruct *)os_zalloc(sizeof(MenuStruct));
-    menu->currentElement = 0;
-    menu->totalElements = 0;
-
-    //will store "new menu yay"
-    static OledStringStruct menuItem1;
-    menuItem1.len = (unsigned char)os_strlen("new menu yay");
-    menuItem1.ptr = (OledStringPtr *)os_zalloc(menuItem1.len);
-    OledFunctions_stringToOledString("new menu yay", menuItem1.ptr);
-    menu->totalElements++;
-
-    //will store "select me plsplspls"
-    static OledStringStruct menuItem2;
-    menuItem2.len = (unsigned char)os_strlen("select me plsplspls");
-    menuItem2.ptr = (OledStringPtr *)os_zalloc(menuItem2.len);
-    OledFunctions_stringToOledString("select me plsplspls", menuItem2.ptr);
-    menu->totalElements++;
-
-    OledFunctions_optionSet(menu,0,NULL,&menuItem1);
-    OledFunctions_optionSet(menu,1,second_stage_function,&menuItem2);
-    OledFunctions_setGlobalMenu(menu);
-    OledFunctions_drawGlobalMenu();
 }
 
 void user_init(void)
 {
-    //initialization
     system_uart_swap();
     initFunction();
 
+    mainMenu.currentElement = 0;
+    mainMenu.totalElements = 0;
     //for default menu behavior
     Interface_setNextPointer(Interface_defaultNext);
     Interface_setSelectPointer(Interface_defaultSelect);
 
-    //menu struct being declared and allocated memory
-    MenuStruct * menu = (MenuStruct *)os_zalloc(sizeof(MenuStruct));
-    menu->currentElement = 0;
-    menu->totalElements = 0;
+    //sets the menu item strings
+    helloWorldTest.len = (OledStringLen)os_strlen(HELLO_WORLD_TEST);
+    helloWorldTest.ptr = (OledStringPtr *)os_zalloc(helloWorldTest.len);
+    OledFunctions_stringToOledString(HELLO_WORLD_TEST, helloWorldTest.ptr);
+    mainMenu.totalElements++;
 
-    //will store "hello world item 1"
-    static OledStringStruct menuItem1;
-    menuItem1.len = (unsigned char)os_strlen("hello world item 1");
-    menuItem1.ptr = (OledStringPtr *)os_zalloc(menuItem1.len);
-    OledFunctions_stringToOledString("hello world item 1", menuItem1.ptr);
-    menu->totalElements++;
+    networkingTest.len = (OledStringLen)os_strlen(NETWORK_TEST);
+    networkingTest.ptr = (OledStringPtr *)os_zalloc(networkingTest.len);
+    OledFunctions_stringToOledString(NETWORK_TEST, networkingTest.ptr);
+    mainMenu.totalElements++;
 
-    //will store "select me"
-    static OledStringStruct menuItem2;
-    menuItem2.len = (unsigned char)os_strlen("select me");
-    menuItem2.ptr = (OledStringPtr *)os_zalloc(menuItem2.len);
-    OledFunctions_stringToOledString("select me", menuItem2.ptr);
-    menu->totalElements++;
+    timeTest.len = (OledStringLen)os_strlen(TIME_STRING);
+    timeTest.ptr = (OledStringPtr *)os_zalloc(timeTest.len);
+    OledFunctions_stringToOledString(TIME_STRING, timeTest.ptr);
+    mainMenu.totalElements++;
 
-    OledFunctions_optionSet(menu,0,NULL,&menuItem1);
-    OledFunctions_optionSet(menu,1,first_stage_select,&menuItem2);
-
-    OledFunctions_setGlobalMenu(menu);
-
+    OledFunctions_optionSet(&mainMenu,0, helloworld_function, &helloWorldTest); //setting all the parameters for the main menu
+    OledFunctions_optionSet(&mainMenu,1, networking_function, &networkingTest);
+    OledFunctions_optionSet(&mainMenu,2, time_function, &timeTest);
+    OledFunctions_setGlobalMenu(&mainMenu);
 }

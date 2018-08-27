@@ -179,6 +179,7 @@ static char OledinitString[INIT_STRING_LENGTH] = {
 
     (char)CMD_SET_DISPLAY_ON(ON)//turn on display
 };
+
 //=====starting of full range string=====
 #define SET_FULL_RANGE_STRING_LENGTH 11
 static unsigned char OledsetFullRangeString[SET_FULL_RANGE_STRING_LENGTH] = {

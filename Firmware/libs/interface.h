@@ -23,7 +23,6 @@ typedef void (*functionPointer)(void);
 void (*Interface_nextPointer)(void);
 void (*Interface_selectPointer)(void);
 
-
 void Interface_defaultNext(void);
 void Interface_defaultSelect(void);
 void Interface_screenTimeoutFunction(void);

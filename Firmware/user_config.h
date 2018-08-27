@@ -56,11 +56,20 @@
 
 //===============CONFIG===============
 
-#define AP_SSID "iot7"
-#define AP_PASSWORD "jehova007" //comment if you're not using a password
-#define SCREEN_TIMEOUT_MS 5000
+#define AP_SSID "TestWiFiNetwork"
+#define AP_PASSWORD "987654321" //comment if you're not using a password
+#define SCREEN_TIMEOUT_MS 10000
 #define BUTTON_TIMEOUT_TIME_MS 1000
 //#define DEBUG_ENABLE 0 //uncomment to enable debug
 //====================================
+
+#include "libs/timerkeeping.h"
+#include "libs/i2c.h"
+#include "libs/oled.h"
+#include "libs/fonts.h"
+#include "libs/oled_functions.h"
+#include "libs/network.h"
+#include "libs/interface.h"
+#include "libs/interrupt_config.h"
 
 #endif

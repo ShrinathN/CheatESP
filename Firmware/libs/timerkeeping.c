@@ -38,6 +38,7 @@ Timekeeping_realTimeIncrementFunction()
 void ICACHE_FLASH_ATTR
 Timekeeping_sntpTimeRetriever()
 {
+    realTime = 0;
     realTime = sntp_get_current_timestamp() + 1800;
     os_timer_setfn(&timekeepingTimer, (os_timer_func_t*)Timekeeping_realTimeIncrementFunction, NULL);
     os_timer_arm(&timekeepingTimer, 1000, REPEAT);
